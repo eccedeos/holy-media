@@ -1,0 +1,10 @@
+{
+  "name": "@holy-media/config",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Configuracoes compartilhadas do monorepo (TypeScript)",
+  "files": [
+    "tsconfig.base.json",
+    "tsconfig.lib.json"
+  ]
+}

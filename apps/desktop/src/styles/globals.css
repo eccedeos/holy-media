@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+
+/*
+ * Tailwind v4: o tema vive no CSS, nao em tailwind.config.js.
+ * Menos arquivo, menos build step, menos peso.
+ *
+ * A paleta e' escura por padrao: sala de midia costuma estar no escuro e o
+ * operador precisa enxergar a tela sem cansar a vista durante duas horas.
+ */
+@theme {
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    sans-serif;
+
+  --color-surface: oklch(0.18 0.012 260);
+  --color-surface-raised: oklch(0.23 0.014 260);
+  --color-surface-sunken: oklch(0.13 0.01 260);
+  --color-border-subtle: oklch(0.32 0.015 260);
+  --color-content: oklch(0.95 0.005 260);
+  --color-content-muted: oklch(0.68 0.012 260);
+  --color-accent: oklch(0.68 0.16 255);
+  --color-accent-content: oklch(0.16 0.02 260);
+  --color-live: oklch(0.7 0.19 25);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-content);
+    font-family: var(--font-sans);
+    /* A janela do app nao rola: o layout e' fixo em paineis. */
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Selecao de texto atrapalha quem opera no clique/atalho. Liberada apenas
+     onde ha conteudo editavel de verdade. */
+  body {
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable='true'] {
+    user-select: text;
+  }
+}

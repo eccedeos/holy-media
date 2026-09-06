@@ -1,0 +1,19 @@
+{
+  "name": "@holy-media/types",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Contratos compartilhados entre o nucleo Rust, o desktop e (futuramente) o controle remoto",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@holy-media/config": "workspace:*",
+    "typescript": "~5.9.3"
+  }
+}

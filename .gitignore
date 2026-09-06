@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+
+# rust / tauri
+target/
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
+
+# test / coverage
+coverage/
+.vitest/
+
+# local data (bancos SQLite gerados em dev)
+*.db
+*.db-shm
+*.db-wal
+data/
+
+# editor / os
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

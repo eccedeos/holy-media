@@ -1,0 +1,111 @@
+# Roadmap
+
+Uma fase só começa quando a anterior está verde: testes passando, lint limpo,
+build funcionando. Fase quebrada não avança.
+
+---
+
+## Fase 0 — Fundação ✅ concluída
+
+Colocar o projeto de pé, sem nenhuma funcionalidade de produto.
+
+- [x] Monorepo pnpm (`apps/*`, `packages/*`)
+- [x] Tauri v2 + Rust configurados e compilando
+- [x] React 19 + TypeScript strict + Vite
+- [x] TailwindCSS v4 + primitivos no padrão shadcn/ui
+- [x] ESLint (flat config) + Prettier + EditorConfig
+- [x] Vitest (frontend) e `cargo test` (núcleo) rodando
+- [x] Ponte IPC tipada com erros normalizados
+- [x] Logger com níveis e redação de dados sensíveis
+- [x] ErrorBoundary
+- [x] CI no GitHub Actions
+- [x] Documentação: arquitetura, roadmap, plano, performance, ADRs
+
+---
+
+## Fase 1 — MVP: dar para fazer um culto inteiro
+
+O critério de pronto é literal: **conseguir conduzir um culto completo usando
+apenas este software.**
+
+- [ ] SQLite no núcleo Rust + migrations + seed
+- [ ] Biblioteca de músicas: cadastro, edição, exclusão
+- [ ] Divisão da letra em slides, editável
+- [ ] Busca por título, artista, trecho da letra e tag (FTS5, < 50 ms)
+- [ ] Favoritos e histórico de uso
+- [ ] Módulo de Bíblia: tradução, livro, capítulo, versículo
+- [ ] Busca bíblica por palavra e por referência
+- [ ] Presentation Engine (lógica pura, coberta por testes)
+- [ ] Segunda tela: escolha de monitor, fullscreen, sem cursor, tela preta
+- [ ] Backgrounds: cor sólida, gradiente e imagem
+- [ ] Ordem do culto: adicionar, remover, reordenar, duplicar, salvar
+- [ ] Slide de texto livre e slide de QR Code (para PIX de ofertas)
+- [ ] `KeyboardShortcutService` centralizado
+
+---
+
+## Fase 2 — Multimídia
+
+- [ ] Biblioteca de imagens e mídia local
+- [ ] Vídeo na segunda tela
+- [ ] Transições simples
+- [ ] Tela de espera configurável
+- [ ] Layouts de slide (posição do texto, tamanho, contorno)
+- [ ] Preview do próximo slide
+
+---
+
+## Fase 3 — Controle remoto
+
+- [ ] Servidor local (HTTP + WebSocket) dentro do processo Rust
+- [ ] Pareamento por PIN
+- [ ] QR Code de conexão exibido no desktop
+- [ ] PWA de controle: ver ordem do culto, slide atual, avançar, voltar, preto
+- [ ] Selecionar item da playlist e slide específico
+- [ ] Protocolo WebSocket documentado e tipado
+- [ ] Reconexão automática quando o Wi-Fi oscila
+
+---
+
+## Fase 4 — Experiência profissional
+
+- [ ] Importadores: TXT, JSON, CSV (interface `LyricsImporter`)
+- [ ] Backup, restauração e exportação
+- [ ] Temas e atalhos configuráveis
+- [ ] Suporte a mais de dois monitores
+- [ ] Preview avançado (stage display para os músicos)
+
+---
+
+## Fase 5 — Nuvem
+
+- [ ] Conta e login
+- [ ] PostgreSQL no servidor
+- [ ] Sincronização da biblioteca entre máquinas
+- [ ] Backup automático
+- [ ] Biblioteca online de músicas (com licenciamento adequado)
+
+---
+
+## Fase 6 — SaaS
+
+- [ ] Multi-tenant (organizações / igrejas)
+- [ ] Usuários e permissões
+- [ ] Planos e cobrança
+- [ ] Painel administrativo
+
+Regra permanente: **uma igreja nunca acessa dados de outra.** O isolamento é
+verificado por teste, não por convenção.
+
+---
+
+## Fase 7 — IA (exploratória)
+
+Nada aqui está comprometido. São hipóteses a validar com igrejas de verdade
+antes de virar escopo:
+
+- Sugerir músicas por tema do culto
+- Encontrar músicas relacionadas
+- Sugerir versículos para um tema
+- Transformar um roteiro de sermão em slides
+- Assistente para o operador durante o culto

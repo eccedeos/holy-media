@@ -1,0 +1,8 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# Scripts de instalacao permitidos explicitamente (pnpm 10 bloqueia por padrao).
+# esbuild precisa baixar/linkar seu binario nativo para o Vite funcionar.
+onlyBuiltDependencies:
+  - esbuild
