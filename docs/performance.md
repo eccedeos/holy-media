@@ -175,19 +175,28 @@ O `WorkingSet64` é o equivalente do RSS no Linux: conta memória compartilhada 
 cada processo, então **superestima** — e superestima muito quando há seis
 processos dividindo o mesmo runtime de navegador.
 
-Para o número que realmente conta, use o working set **privado**:
+Para o número que realmente conta — o working set **privado** — use o script do
+repositório, com o aplicativo aberto e parado:
 
 ```powershell
-Get-Counter '\Processo(holy-media*)\Conjunto de Trabalho - Privado',
-            '\Processo(msedgewebview2*)\Conjunto de Trabalho - Privado' |
-  ForEach-Object { $_.CounterSamples } |
-  Measure-Object CookedValue -Sum |
-  ForEach-Object { '{0:N0} MB privados' -f ($_.Sum / 1MB) }
+powershell -ExecutionPolicy Bypass -File scripts\medir-memoria.ps1
 ```
 
-Em Windows em inglês, troque por `'\Process(...)\Working Set - Private'`. O
-Gerenciador de Tarefas também mostra a coluna "Conjunto de trabalho (privado)"
-na aba Detalhes, ativando-a com o botão direito no cabeçalho.
+Ele soma as duas métricas, lista os processos e informa a GPU (sem aceleração o
+navegador embutido consome bem mais, então o número só é comparável com essa
+informação junto).
+
+> **Por que um script e não um `Get-Counter` colado no terminal:** os nomes dos
+> contadores de desempenho do Windows são traduzidos — `\Processo(...)\Conjunto
+de Trabalho - Privado` em português, `\Process(...)\Working Set - Private` em
+> inglês — e um comando escrito para um idioma falha no outro com "não foi
+> possível encontrar o contador especificado". O script usa CIM
+> (`Win32_PerfRawData_PerfProc_Process`), cujas propriedades não mudam de nome
+> com o idioma.
+
+Se preferir sem script: Gerenciador de Tarefas → aba **Detalhes** → botão
+direito no cabeçalho → **Selecionar colunas** → "Conjunto de trabalho (memória
+privada)".
 
 O que interessa registrar: o total, o número de processos e se a máquina tem GPU
 (sem aceleração, o navegador embutido consome bem mais).
