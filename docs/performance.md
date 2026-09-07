@@ -35,16 +35,17 @@ Ambiente da medição: container Linux x86_64, Node 22, Rust 1.94, build release
 Números de RAM e tempo de partida dependem de máquina real com display; os que
 estão marcados como pendentes serão preenchidos quando houver um alvo com GUI.
 
-| Métrica                         | Medido      | Limite | Folga |
-| ------------------------------- | ----------- | ------ | ----- |
-| Busca em 5000 músicas (release) | **11 ms**   | 50 ms  | 78 %  |
-| Busca em 5000 músicas (debug)   | 24 ms       | —      | —     |
-| JS do bundle (gzip)             | **76,0 kB** | 150 kB | 49 %  |
-| CSS do bundle (gzip)            | **3,6 kB**  | —      | —     |
-| Binário release (Linux)         | **4,9 MB**  | 40 MB  | 88 %  |
-| RAM em repouso (Linux, sem GPU) | **231 MB**  | 250 MB | 8 %   |
-| RAM em repouso (Windows/macOS)  | a medir     | —      | —     |
-| Tempo até a janela              | a medir     | 2 s    | —     |
+| Métrica                         | Medido      | Limite  | Folga |
+| ------------------------------- | ----------- | ------- | ----- |
+| Busca em 5000 músicas (release) | **11 ms**   | 50 ms   | 78 %  |
+| Busca em 5000 músicas (debug)   | 24 ms       | —       | —     |
+| JS do bundle (gzip)             | **76,0 kB** | 150 kB  | 49 %  |
+| CSS do bundle (gzip)            | **3,6 kB**  | —       | —     |
+| Binário release (Linux)         | **4,9 MB**  | 40 MB   | 88 %  |
+| RAM em repouso (Linux, sem GPU) | **231 MB**  | 250 MB  | 8 %   |
+| RAM em repouso (Windows 10/11)  | **368 MB**  | a rever | —     |
+| RAM em repouso (macOS)          | a medir     | —       | —     |
+| Tempo até a janela              | a medir     | 2 s     | —     |
 
 A busca foi medida no pior caso do ranking: um termo presente em todas as 5000
 músicas, obrigando o FTS5 a ordenar o conjunto inteiro. O teste
@@ -96,14 +97,53 @@ Duas honestidades necessárias:
 1. **O limite foi revisado para 250 MB no Linux**, porque 150 MB não é
    alcançável nessa plataforma sem trocar de motor de renderização. Mover a
    meta é ruim; fingir que o número antigo era atingível seria pior.
-2. **Windows ainda não foi medido**, e é a plataforma da maioria das igrejas
-   brasileiras. Lá o Tauri usa WebView2, com perfil de memória diferente e
-   compartilhado com o sistema. O número pode ser bem melhor — mas até alguém
-   medir numa máquina real, ele não existe.
+2. **Windows foi medido depois** (ver a seção seguinte) e ficou em 368 MB de
+   working set — na mesma ordem de grandeza do Linux, não melhor.
 
 Para comparação de ordem de grandeza: um Electron equivalente parte de 200–400
 MB **antes** do código da aplicação, com o Chromium inteiro no instalador. A
 escolha do Tauri continua certa; ela só não é mágica.
+
+### Windows: medido em máquina real
+
+Aplicativo aberto e parado, Windows 10/11, `WorkingSet64`:
+
+| Processo                   | Working set |
+| -------------------------- | ----------- |
+| `holy-media` (núcleo Rust) | **25 MB**   |
+| `msedgewebview2` × 6       | 343 MB      |
+| **Total**                  | **368 MB**  |
+
+Duas leituras deste número.
+
+**O núcleo Rust custa 25 MB.** É a parte que nós escrevemos, e ela é
+irrelevante no total — no Linux o mesmo núcleo aparece com 175 MB de RSS, mas
+quase tudo ali é biblioteca de sistema mapeada e contada em dobro. Os 25 MB do
+Windows são a medida mais limpa que temos do custo real do nosso código.
+
+**O navegador embutido custa o resto**, espalhado por 6 processos. Comparando
+na mesma métrica (working set no Windows, RSS no Linux — as duas contam memória
+compartilhada), as plataformas empatam: 368 MB contra 389 MB. A esperança de que
+o WebView2 fosse muito mais econômico que o WebKitGTK **não se confirmou**.
+
+Falta o número decisivo: o **working set privado**, que desconta o que os seis
+processos do WebView2 compartilham entre si. Como eles compartilham o runtime do
+navegador inteiro, a diferença tende a ser grande — e é esse valor, não os
+368 MB, que diz quanta memória o aplicativo realmente tira da máquina.
+
+### Uma otimização que existe, e por que ela não foi aplicada
+
+O WebView2 aceita `--renderer-process-limit=1`, que colapsaria os seis processos
+em menos. Seria a economia mais óbvia disponível.
+
+Ela não foi aplicada porque **conflita com o [ADR 0004](adr/0004-segunda-tela-como-janela-tauri.md)**:
+a segunda tela é uma janela separada justamente para que um erro no Control Room
+não derrube a projeção. Se as duas janelas dividirem um renderizador, essa
+garantia deixa de existir — e ela vale mais do que alguns megabytes, porque o
+que está em jogo é a tela que a congregação está olhando.
+
+A decisão fica para depois de medir o working set privado. Se o consumo real já
+couber, não há troca a fazer.
 
 ## Como medir
 
@@ -131,10 +171,23 @@ Get-Process holy-media, msedgewebview2 -ErrorAction SilentlyContinue |
   Measure-Object WorkingSet64 -Sum).Sum / 1MB)
 ```
 
-O `WorkingSet64` é o equivalente do RSS no Linux: conta memória compartilhada
-em cada processo, então **superestima**. Para o número mais próximo do PSS que
-usamos aqui, o Gerenciador de Tarefas mostra "Conjunto de trabalho (privado)" na
-aba Detalhes, ativando a coluna.
+O `WorkingSet64` é o equivalente do RSS no Linux: conta memória compartilhada em
+cada processo, então **superestima** — e superestima muito quando há seis
+processos dividindo o mesmo runtime de navegador.
+
+Para o número que realmente conta, use o working set **privado**:
+
+```powershell
+Get-Counter '\Processo(holy-media*)\Conjunto de Trabalho - Privado',
+            '\Processo(msedgewebview2*)\Conjunto de Trabalho - Privado' |
+  ForEach-Object { $_.CounterSamples } |
+  Measure-Object CookedValue -Sum |
+  ForEach-Object { '{0:N0} MB privados' -f ($_.Sum / 1MB) }
+```
+
+Em Windows em inglês, troque por `'\Process(...)\Working Set - Private'`. O
+Gerenciador de Tarefas também mostra a coluna "Conjunto de trabalho (privado)"
+na aba Detalhes, ativando-a com o botão direito no cabeçalho.
 
 O que interessa registrar: o total, o número de processos e se a máquina tem GPU
 (sem aceleração, o navegador embutido consome bem mais).
