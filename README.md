@@ -9,10 +9,9 @@ um culto.
 
 > **Estado atual: Fase 1 em andamento.** Já dá para cadastrar músicas, buscar
 > por título, artista, letra ou tag (11 ms numa biblioteca de 5000, ignorando
-> acentos) e **projetar**: colocar no ar, avançar e voltar slides, tela preta.
-> Falta a janela na segunda tela — hoje a projeção aparece só na prévia do
-> operador. Depois: Bíblia e ordem do culto.
-> Veja [docs/roadmap.md](docs/roadmap.md).
+> acentos) e **projetar de verdade**: escolher o monitor, abrir a tela cheia no
+> projetor, avançar e voltar slides, tela preta. Faltam Bíblia, ordem do culto e
+> backgrounds. Veja [docs/roadmap.md](docs/roadmap.md).
 
 ## Por que Tauri e não Electron
 

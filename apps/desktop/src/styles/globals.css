@@ -45,6 +45,14 @@
     user-select: none;
   }
 
+  /* A janela de projecao: fundo preto e nenhum cursor. Uma setinha do mouse
+     parada no telao durante o culto e' o tipo de detalhe que denuncia
+     amadorismo, e ela aparece sozinha se o operador encostar no mouse. */
+  body.projection {
+    background-color: black;
+    cursor: none;
+  }
+
   input,
   textarea,
   [contenteditable='true'] {

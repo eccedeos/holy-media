@@ -15,6 +15,8 @@ export type AppErrorCode =
   | 'NOT_FOUND'
   /** O dado enviado pela interface nao passa nas regras do dominio. */
   | 'INVALID_INPUT'
+  /** Falha ao abrir, posicionar ou fechar a janela de projecao. */
+  | 'DISPLAY_FAILED'
   /** Erro nao classificado. */
   | 'UNKNOWN';
 

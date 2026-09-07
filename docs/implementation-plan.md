@@ -266,11 +266,60 @@ mostra preto enquanto o Control Room continua marcando o slide no ar.
 | clippy / eslint / tsc / prettier | limpos                 |
 | Bundle JS                        | 78,1 kB gzip (+2,1 kB) |
 
+## Fase 1, passo 4 — A segunda tela
+
+**Entregue:**
+
+- Janela de projeção dedicada, criada sob demanda, posicionada no monitor
+  escolhido e em tela cheia, sem bordas e sem barra de título.
+- Seletor de monitor no Control Room, com resolução e um aviso de qual monitor é
+  o do próprio operador — projetar ali cobriria a tela de quem está operando.
+- A tela renderiza **apenas** o `Output`: sem menus, sem posição, sem título,
+  sem marcação de slide, sem cursor.
+- Capability própria para a janela de projeção, com `core:event:default` e nada
+  mais.
+
+**O bug que só apareceu rodando o aplicativo.** A janela abria, ficava em tela
+cheia — e mostrava preto, com a música no ar. A causa: as capabilities do Tauri
+v2 são **por janela**, e a janela nova não estava em nenhuma. Sem permissão, o
+`listen` era negado, a assinatura estourava dentro do `connect()` e levava junto
+a busca do estado inicial. Duas correções, porque o problema tinha duas partes:
+
+1. A janela de projeção ganhou capability própria — com o mínimo, já que ela só
+   precisa escutar.
+2. `connect()` passou a assinar e buscar de forma independente. Se a assinatura
+   falhar, o estado inicial ainda chega, e a tela mostra o slide em vez de preto.
+
+Nenhum teste unitário pegaria isso: cada peça funcionava sozinha.
+
+**Decisão de sincronia:** o papel da janela é decidido de forma síncrona, por uma
+marca que o núcleo injeta antes de qualquer script da página. Ler o rótulo pela
+API do Tauri seria assíncrono, e a projeção piscaria o Control Room por um
+quadro — na frente da igreja inteira.
+
+**Verificado rodando o aplicativo:**
+
+| Verificação                                                    | Resultado    |
+| -------------------------------------------------------------- | ------------ |
+| A janela de projeção abre (duas janelas, títulos ok)           | ✅           |
+| Tela cheia, só conteúdo, sem cursor                            | ✅           |
+| Mostra o slide que já estava no ar ao abrir                    | ✅           |
+| **Acompanha ao vivo:** avançar no Control Room muda a projeção | ✅           |
+| `cargo test` / `pnpm test`                                     | 88 / 99      |
+| clippy / eslint / tsc / prettier                               | limpos       |
+| Bundle JS                                                      | 79,0 kB gzip |
+
+**Não verificado aqui:** o posicionamento em **dois monitores**. O Xvfb deste
+ambiente não expõe mais de um monitor nem com Xinerama, então o caminho testado
+foi sempre com um só. A escolha de monitor, a listagem e o tratamento de "monitor
+desconectado" estão implementados e cobertos por teste, mas o posicionamento real
+numa segunda tela precisa de uma máquina com projetor ou TV ligada.
+
 ## Próximo passo
 
-A **janela de projeção** na segunda tela: escolha de monitor, tela cheia, cursor
-escondido. O motor já está pronto — a janela é só mais um observador dele, e
-renderiza o mesmo `Output` que a prévia já renderiza hoje.
+**Ordem do culto** — a playlist que amarra músicas, e depois versículos, numa
+sequência. É o que falta para o critério da Fase 1 ser atingível: conduzir um
+culto inteiro sem sair do software.
 
 ## Fase 1 — passos restantes
 

@@ -67,13 +67,25 @@ export const usePresentationStore = create<PresentationStoreState>((set) => {
     connect: async () => {
       // O evento chega quando qualquer janela muda o motor; sem ele, duas
       // janelas mostrariam estados diferentes do mesmo culto.
-      const unlisten = await api.onPresentationState((state) => set({ state }));
+      //
+      // Assinar e buscar sao independentes de proposito: se a assinatura
+      // falhar, o estado inicial ainda precisa chegar. Foi assim que a janela
+      // de projecao ficou preta uma vez -- a assinatura estourava e levava o
+      // estado inicial junto, entao a tela nunca mostrava o slide.
+      let unlisten: () => void = () => {};
+      try {
+        unlisten = await api.onPresentationState((state) => set({ state }));
+      } catch (cause) {
+        log.error('nao foi possivel escutar o motor', { detail: describeUnknown(cause) });
+      }
+
       try {
         set({ state: await api.fetchPresentationState(), error: null });
       } catch {
         // Fora do Tauri nao ha nucleo: a tela fica no estado de espera, sem
         // alarmar o operador com um erro que ele nao pode resolver.
       }
+
       return unlisten;
     },
 

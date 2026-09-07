@@ -26,6 +26,8 @@ pub enum AppErrorCode {
     NotFound,
     /// O dado enviado pela interface nao passa nas regras do dominio.
     InvalidInput,
+    /// Falha ao abrir, posicionar ou fechar a janela de projecao.
+    DisplayFailed,
 }
 
 impl AppError {

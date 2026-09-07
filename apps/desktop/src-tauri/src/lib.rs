@@ -6,6 +6,7 @@
 
 mod commands;
 mod db;
+mod display;
 mod error;
 mod presentation;
 mod songs;
@@ -56,6 +57,7 @@ pub fn run() {
 
             let database = db::Database::open(data_dir.join(DATABASE_FILE))?;
             app.manage(state::AppState::new(database));
+            app.manage(commands::display::SelectedMonitor::default());
 
             Ok(())
         })
@@ -80,6 +82,9 @@ pub fn run() {
             commands::presentation::presentation_go_to,
             commands::presentation::presentation_toggle_blackout,
             commands::presentation::presentation_clear,
+            commands::display::display_state,
+            commands::display::display_open,
+            commands::display::display_close,
         ])
         .run(tauri::generate_context!())
         .expect("falha ao iniciar a aplicacao Tauri");

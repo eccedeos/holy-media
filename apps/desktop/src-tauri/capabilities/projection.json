@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "projection",
+  "description": "Permissoes da janela de projecao. Ela so precisa escutar os eventos do motor -- nao abre janelas, nao le arquivos, nao decide nada. Menor privilegio de proposito: e' a tela que a congregacao ve.",
+  "windows": ["projection"],
+  "permissions": ["core:event:default"]
+}

@@ -4,6 +4,7 @@ import { isTauriAvailable } from '@/lib/ipc';
 import { SongLibrary } from '@/components/songs/song-library';
 import { SongPanel } from '@/components/songs/song-panel';
 import { PresentationControls } from '@/components/presentation/presentation-controls';
+import { DisplayPicker } from '@/components/presentation/display-picker';
 import { usePresentationStore } from '@/store/presentation-store';
 
 /**
@@ -57,6 +58,7 @@ export function App() {
             que avancar slide nunca dependa de rolar ou trocar de aba. A ordem
             do culto ocupa o espaco abaixo quando chegar. */}
         <div className="flex min-h-0 flex-col border-l border-line">
+          <DisplayPicker />
           <PresentationControls />
         </div>
       </main>

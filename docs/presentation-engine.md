@@ -100,10 +100,30 @@ verdade, e as duas divergiriam no pior momento possível.
 É também o que faz o controle remoto da Fase 3 ser quase de graça: o celular
 vira mais um observador do mesmo estado, sem mudança de arquitetura.
 
+## A janela de projeção
+
+A projeção é uma **segunda janela Tauri** (ver
+[ADR 0004](adr/0004-segunda-tela-como-janela-tauri.md)), criada sob demanda,
+posicionada no monitor escolhido e colocada em tela cheia. Ela:
+
+- renderiza **apenas** o `Output` — sem menus, sem posição, sem título, sem
+  marcação de slide, sem cursor;
+- é servida pelo mesmo bundle, com o papel decidido de forma **síncrona**: o
+  núcleo injeta `window.__HOLY_MEDIA_ROLE__` antes de qualquer script da
+  página. Ler o rótulo pela API do Tauri seria assíncrono, e a projeção
+  piscaria o Control Room por um quadro — na frente da igreja inteira;
+- tem **capability própria**, com `core:event:default` e mais nada. Ela só
+  precisa escutar o motor: não abre janelas, não lê arquivos, não decide nada.
+
+O tamanho da letra usa `clamp(1.5rem, 5.5vw, 12rem)`: a mesma música precisa
+encher um projetor de 1024×768 e uma TV 4K sem ninguém reconfigurar nada.
+
+Quando o monitor escolhido some — o cabo do projetor cai no meio do culto — o
+comando devolve "O monitor escolhido não está mais conectado" em vez de falhar
+em silêncio.
+
 ## O que ainda não existe
 
-- **A janela de projeção.** É o próximo passo: escolha de monitor, tela cheia,
-  cursor escondido. O motor já está pronto para ela.
 - **Backgrounds.** `Output::Slide` carrega só o texto por enquanto.
 - **`set_blackout(bool)` explícito.** Só faz falta com mais de um cliente —
   dois toggles simultâneos se cancelam. Entra na Fase 3, junto com o celular.

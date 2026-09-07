@@ -19,6 +19,7 @@ const FRIENDLY_MESSAGES: Record<AppErrorCode, string> = {
   DATABASE_FAILED: 'Nao foi possivel acessar a biblioteca local.',
   NOT_FOUND: 'O item pedido nao foi encontrado.',
   INVALID_INPUT: 'Os dados informados nao sao validos.',
+  DISPLAY_FAILED: 'Nao foi possivel controlar a tela de projecao.',
   UNKNOWN: 'Ocorreu um erro inesperado.',
 };
 

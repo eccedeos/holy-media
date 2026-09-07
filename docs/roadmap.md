@@ -42,7 +42,7 @@ apenas este software.**
 - [ ] Busca bíblica por palavra e por referência
 - [x] Presentation Engine (lógica pura, 23 testes)
 - [x] Controle da projeção no Control Room: apresentar, avançar, voltar, tela preta
-- [ ] Segunda tela: escolha de monitor, fullscreen, sem cursor, tela preta
+- [x] Segunda tela: janela dedicada, escolha de monitor, tela cheia, sem cursor
 - [ ] Backgrounds: cor sólida, gradiente e imagem
 - [ ] Ordem do culto: adicionar, remover, reordenar, duplicar, salvar
 - [ ] Slide de texto livre e slide de QR Code (para PIX de ofertas)
