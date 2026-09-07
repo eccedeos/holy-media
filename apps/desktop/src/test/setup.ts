@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { afterEach } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { setLogLevel } from '@/lib/logger';
 
@@ -8,4 +8,8 @@ setLogLevel('silent');
 
 afterEach(() => {
   cleanup();
+  // Um teste que falha antes do seu proprio `useRealTimers` deixaria os
+  // timers falsos ligados e faria todos os seguintes travar em timeout --
+  // um erro apareceria como sete. Restaurar aqui isola a falha.
+  vi.useRealTimers();
 });

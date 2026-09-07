@@ -9,6 +9,12 @@ export type AppErrorCode =
   | 'IPC_FAILED'
   /** A interface esta rodando fora do Tauri (ex.: `vite dev` puro no browser). */
   | 'IPC_UNAVAILABLE'
+  /** Falha ao abrir, migrar ou consultar o banco local. */
+  | 'DATABASE_FAILED'
+  /** A entidade pedida nao existe (musica ja excluida, id invalido). */
+  | 'NOT_FOUND'
+  /** O dado enviado pela interface nao passa nas regras do dominio. */
+  | 'INVALID_INPUT'
   /** Erro nao classificado. */
   | 'UNKNOWN';
 

@@ -34,23 +34,34 @@ Ambiente da medição: container Linux x86_64, Node 22, Rust 1.94, build release
 Números de RAM e tempo de partida dependem de máquina real com display; os que
 estão marcados como pendentes serão preenchidos quando houver um alvo com GUI.
 
-| Métrica                 | Medido      | Limite | Folga |
-| ----------------------- | ----------- | ------ | ----- |
-| JS do bundle (gzip)     | **71,8 kB** | 150 kB | 51 %  |
-| CSS do bundle (gzip)    | **3,0 kB**  | —      | —     |
-| Binário release (Linux) | **3,6 MB**  | 40 MB  | 91 %  |
-| RAM em repouso          | pendente    | 150 MB | —     |
-| Tempo até a janela      | pendente    | 2 s    | —     |
+| Métrica                         | Medido      | Limite | Folga |
+| ------------------------------- | ----------- | ------ | ----- |
+| Busca em 5000 músicas (release) | **11 ms**   | 50 ms  | 78 %  |
+| Busca em 5000 músicas (debug)   | 24 ms       | —      | —     |
+| JS do bundle (gzip)             | **74,1 kB** | 150 kB | 51 %  |
+| CSS do bundle (gzip)            | **3,5 kB**  | —      | —     |
+| Binário release (Linux)         | **4,9 MB**  | 40 MB  | 88 %  |
+| RAM em repouso                  | pendente    | 150 MB | —     |
+| Tempo até a janela              | pendente    | 2 s    | —     |
 
-O binário release tem **3,6 MB** com o frontend já embutido. Um aplicativo
-Electron equivalente parte de ~150 MB instalados — a diferença é de mais de
-quarenta vezes, e é exatamente o que faz o app caber no PC de referência.
+A busca foi medida no pior caso do ranking: um termo presente em todas as 5000
+músicas, obrigando o FTS5 a ordenar o conjunto inteiro. O teste
+`busca_em_biblioteca_grande_continua_rapida` refaz essa medição a cada execução
+da suíte, então o número não envelhece em silêncio.
 
-Os 71,8 kB de JavaScript são quase inteiramente React + React DOM. Ou seja: o
-código do produto ainda não existe e metade do orçamento já está gasta em
-framework. Isso é aceitável — React paga por si em produtividade e em qualidade
-de UI — mas significa que o orçamento restante é apertado e que cada
-dependência nova precisa ser justificada de verdade.
+O binário release tem **4,9 MB** com o frontend e o SQLite embutidos — o SQLite
+custou 1,3 MB, que é o preço de não depender de biblioteca do sistema. Um
+aplicativo Electron equivalente parte de ~150 MB instalados: trinta vezes mais,
+antes de embutir banco nenhum.
+
+Os 74,1 kB de JavaScript continuam sendo quase inteiramente React + React DOM.
+A biblioteca de músicas inteira — busca, lista, favoritos, detalhe — custou
+**2,3 kB**, porque a busca vive no SQLite e não em JavaScript. É a decisão do
+[ADR 0002](adr/0002-acesso-a-dados-sqlite-sem-orm.md) se pagando na prática.
+
+Ainda assim, metade do orçamento está gasta em framework antes de o produto
+estar pronto. O espaço restante é apertado, e cada dependência nova precisa ser
+justificada de verdade.
 
 Estes números são de build release verificado, não de estimativa. São
 atualizados a cada fase.

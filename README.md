@@ -7,10 +7,11 @@ segunda tela, com controle rápido pelo operador.
 fraco que a igreja já tem, funcionar **sem internet** e nunca travar no meio de
 um culto.
 
-> **Estado atual: Fase 0 (fundação).** O que existe hoje é a base do projeto:
-> monorepo, Tauri + React configurados, lint, testes, build e documentação de
-> arquitetura. As funcionalidades (músicas, Bíblia, apresentação, segunda tela)
-> são a Fase 1. Veja [docs/roadmap.md](docs/roadmap.md).
+> **Estado atual: Fase 1 em andamento.** A biblioteca de músicas funciona:
+> banco SQLite local, cadastro de músicas com letra dividida em slides, e busca
+> por título, artista, letra ou tag — 11 ms numa biblioteca de 5000 músicas,
+> ignorando acentos. Bíblia, apresentação e segunda tela são os próximos passos.
+> Veja [docs/roadmap.md](docs/roadmap.md).
 
 ## Por que Tauri e não Electron
 
@@ -93,6 +94,7 @@ A estrutura cresce por necessidade, não por antecipação: `local-server`,
 ## Documentação
 
 - [Arquitetura](docs/architecture.md)
+- [Banco de dados e busca](docs/database.md)
 - [Roadmap por fases](docs/roadmap.md)
 - [Plano de implementação](docs/implementation-plan.md)
 - [Orçamento de performance](docs/performance.md)

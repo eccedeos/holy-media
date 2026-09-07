@@ -16,6 +16,9 @@ const log = createLogger('ipc');
 const FRIENDLY_MESSAGES: Record<AppErrorCode, string> = {
   IPC_FAILED: 'Nao foi possivel se comunicar com o nucleo do aplicativo.',
   IPC_UNAVAILABLE: 'Este recurso so esta disponivel no aplicativo instalado.',
+  DATABASE_FAILED: 'Nao foi possivel acessar a biblioteca local.',
+  NOT_FOUND: 'O item pedido nao foi encontrado.',
+  INVALID_INPUT: 'Os dados informados nao sao validos.',
   UNKNOWN: 'Ocorreu um erro inesperado.',
 };
 
@@ -70,6 +73,15 @@ export async function invokeCommand<T>(
     const { invoke } = await import('@tauri-apps/api/core');
     return await invoke<T>(command, args);
   } catch (cause) {
+    // O nucleo rejeita com um AppError ja montado -- com a mensagem certa em
+    // portugues para aquele caso. Reembrulhar transformaria "Musica nao
+    // encontrada." no generico "nao foi possivel se comunicar", que e' pior
+    // para o operador e mentiroso sobre a causa.
+    if (isAppError(cause)) {
+      log.warn('comando recusado pelo nucleo', { command, code: cause.code, detail: cause.detail });
+      throw cause;
+    }
+
     const detail = describeUnknown(cause);
     log.error('comando falhou', { command, detail });
     throw createAppError('IPC_FAILED', detail);

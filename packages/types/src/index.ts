@@ -7,9 +7,10 @@
  * mesmas estruturas sem duplicacao.
  *
  * Regra: so entra aqui contrato que ja e' consumido por pelo menos um app.
- * Contratos de fases futuras (protocolo WebSocket, dominio de musicas/Biblia)
- * sao adicionados na fase em que forem implementados.
+ * Contratos de fases futuras (protocolo WebSocket, dominio da Biblia) sao
+ * adicionados na fase em que forem implementados.
  */
 
 export * from './app.js';
 export * from './errors.js';
+export * from './songs.js';

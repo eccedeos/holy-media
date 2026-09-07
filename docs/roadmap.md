@@ -23,16 +23,20 @@ Colocar o projeto de pé, sem nenhuma funcionalidade de produto.
 
 ---
 
-## Fase 1 — MVP: dar para fazer um culto inteiro
+## Fase 1 — MVP: dar para fazer um culto inteiro 🚧 em andamento
 
 O critério de pronto é literal: **conseguir conduzir um culto completo usando
 apenas este software.**
 
-- [ ] SQLite no núcleo Rust + migrations + seed
-- [ ] Biblioteca de músicas: cadastro, edição, exclusão
-- [ ] Divisão da letra em slides, editável
-- [ ] Busca por título, artista, trecho da letra e tag (FTS5, < 50 ms)
-- [ ] Favoritos e histórico de uso
+- [x] SQLite no núcleo Rust + migrations (`user_version`, WAL, chaves estrangeiras)
+- [x] Domínio de músicas: criar, ler, editar, excluir
+- [x] Letra dividida em slides, com ordem de projeção
+- [x] Busca por título, artista, autor, trecho da letra e tag (FTS5, **11 ms** em 5000 músicas)
+- [x] Busca sem acento nos dois sentidos ("coracao" ↔ "Coração")
+- [x] Favoritos e histórico de uso
+- [x] Painel de biblioteca com busca instantânea (debounce + guarda de corrida)
+- [ ] Formulário de cadastro e edição de músicas na interface
+- [ ] Seed de exemplo para primeira execução
 - [ ] Módulo de Bíblia: tradução, livro, capítulo, versículo
 - [ ] Busca bíblica por palavra e por referência
 - [ ] Presentation Engine (lógica pura, coberta por testes)

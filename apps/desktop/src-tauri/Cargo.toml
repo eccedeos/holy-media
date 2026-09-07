@@ -20,6 +20,12 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# SQLite compilado junto (feature `bundled`): sem dependencia de sistema, e
+# garante FTS5 -- que e' o que faz a busca de musica ser instantanea.
+rusqlite = { version = "0.40", features = ["bundled"] }
+# UUID v7: unico globalmente (necessario para a sincronizacao da Fase 5) e
+# ordenado no tempo, o que mantem o indice compacto.
+uuid = { version = "1", features = ["v7", "serde"] }
 
 [features]
 # Ativado pelo `tauri dev`/`tauri build` quando ha custom protocol.

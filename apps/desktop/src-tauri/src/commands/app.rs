@@ -1,8 +1,4 @@
-//! Comandos expostos a interface via IPC.
-//!
-//! Contrato: cada struct devolvida aqui tem um espelho em `@holy-media/types`.
-//! Os campos usam `camelCase` na serializacao para que o lado TypeScript nao
-//! precise de conversao.
+//! Comandos de identificacao da aplicacao.
 
 use serde::Serialize;
 

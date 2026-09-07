@@ -84,7 +84,8 @@ descartadas) está no
 SQLite em arquivo único, acessado **do lado Rust**, sem ORM. Busca de música e
 de versículo usam FTS5, que é parte do próprio SQLite — sem índice externo, sem
 processo de indexação em background. O porquê está no
-[ADR 0002](adr/0002-acesso-a-dados-sqlite-sem-orm.md).
+[ADR 0002](adr/0002-acesso-a-dados-sqlite-sem-orm.md); o esquema, os pragmas e o
+funcionamento da busca estão em [database.md](database.md).
 
 Backup e restauração são, por consequência, copiar um arquivo.
 
