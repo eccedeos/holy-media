@@ -460,3 +460,48 @@ fn busca_em_biblioteca_grande_continua_rapida() {
     );
     println!("busca em {TOTAL} musicas: {decorrido:?}");
 }
+
+// --- exemplos -------------------------------------------------------------
+
+#[test]
+fn o_seed_popula_a_biblioteca_vazia() {
+    let db = banco();
+
+    let inseridas = repository::seed_examples(&db).expect("seed");
+
+    assert!(inseridas > 0);
+    assert_eq!(repository::search(&db, "").expect("busca").len(), inseridas);
+}
+
+#[test]
+fn o_seed_nao_duplica_quando_ja_ha_musica() {
+    let db = banco();
+    repository::create(&db, musica("Musica do operador")).expect("deveria criar");
+
+    let inseridas = repository::seed_examples(&db).expect("seed");
+
+    assert_eq!(
+        inseridas, 0,
+        "o seed nao pode encher a biblioteca de alguem"
+    );
+    assert_eq!(repository::search(&db, "").expect("busca").len(), 1);
+}
+
+#[test]
+fn o_seed_roda_duas_vezes_sem_duplicar() {
+    let db = banco();
+    let primeira = repository::seed_examples(&db).expect("seed");
+
+    assert_eq!(repository::seed_examples(&db).expect("seed"), 0);
+    assert_eq!(repository::search(&db, "").expect("busca").len(), primeira);
+}
+
+#[test]
+fn os_exemplos_sao_encontraveis_pela_busca_sem_acento() {
+    let db = banco();
+    repository::seed_examples(&db).expect("seed");
+
+    // "Coração" cadastrado com acento, procurado sem: o caso real do operador
+    // com pressa, agora verificavel abrindo o app.
+    assert_eq!(repository::search(&db, "coracao").expect("busca").len(), 1);
+}

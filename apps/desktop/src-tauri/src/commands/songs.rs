@@ -48,6 +48,12 @@ pub fn songs_register_usage(state: State<'_, AppState>, id: String) -> AppResult
     repository::register_usage(&state.db, &id)
 }
 
+/// Insere as musicas de exemplo. Devolve quantas foram inseridas.
+#[tauri::command]
+pub fn songs_seed_examples(state: State<'_, AppState>) -> AppResult<usize> {
+    repository::seed_examples(&state.db)
+}
+
 #[tauri::command]
 pub fn songs_list_favorites(state: State<'_, AppState>) -> AppResult<Vec<SongSummary>> {
     repository::list_favorites(&state.db)

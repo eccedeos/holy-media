@@ -158,10 +158,65 @@ SQLite e não em JavaScript. É a decisão do ADR 0002 se pagando na prática.
 3. `tsc` pegou um `expect(...).toBe(valor, mensagem)` que o Vitest ignorava em
    silêncio — a mensagem nunca teria aparecido.
 
+## Fase 1, passo 2 — CRUD na interface, e o app rodando de verdade
+
+**Entregue:**
+
+- Formulário de cadastro e edição. A letra é um campo de texto só: **linha em
+  branco separa slides**, e uma primeira linha como `[Refrão]` vira a marcação
+  do bloco. O contador mostra, enquanto se digita, quantos slides vão para a
+  tela. A razão é que ninguém monta uma música slide a slide num formulário — a
+  letra chega pronta, de um caderno ou de um e-mail, e o operador quer colar e
+  salvar.
+- Exclusão com confirmação no próprio lugar.
+- Músicas de exemplo, oferecidas quando a biblioteca está vazia. **Não há seed
+  automático:** um app que se enche de músicas falsas na primeira abertura
+  obriga o operador a limpar a biblioteca antes de usar. O conteúdo é original,
+  não hino conhecido — traduções de hinos têm copyright próprio.
+
+**Três defeitos que só apareceram ao rodar o aplicativo:**
+
+1. **Todo o tema estava sem efeito.** No Tailwind v4,
+   `text-[--color-content-muted]` compila para `color: --color-content-muted` —
+   CSS inválido, sem `var()`. O build passava, os testes passavam, e a tela
+   aparecia sem estilo. A forma correta é usar os utilitários que o Tailwind
+   gera do bloco `@theme`. Como esse bug não produz erro em lugar nenhum, ficou
+   um teste que varre o código e falha se a sintaxe voltar.
+2. **A lista piscava entre buscas.** Cada consulta voltava ao estado `loading`,
+   trocando os resultados por "Buscando..." a cada palavra digitada. Agora esse
+   texto só aparece na abertura.
+3. **A RAM real era o dobro do orçamento.** Ver abaixo.
+
+**A medição de memória, e uma correção de rumo:**
+
+O limite de 150 MB em `performance.md` tinha sido escrito antes de qualquer
+medição. A primeira execução real deu **345 MB de PSS**, dos quais 235 MB são do
+`WebKitWebProcess` — o motor do Tauri no Linux, medido sem GPU.
+
+Desligar o modo de composição do WebKit levou o total a **231 MB**, economia de
+114 MB. Está aplicado, respeitando a variável se o usuário já a tiver definido,
+e marcado para reavaliação na Fase 2, quando houver vídeo.
+
+O orçamento foi revisado para 250 MB no Linux, e Windows — a plataforma real da
+maioria das igrejas — está marcado como **não medido** em vez de estimado.
+
+**Verificado rodando o aplicativo, não só pelos testes:**
+
+| Verificação                                    | Resultado              |
+| ---------------------------------------------- | ---------------------- |
+| Aplicativo sobe e cria o banco (com WAL)       | ✅                     |
+| Músicas de exemplo entram pela interface       | ✅                     |
+| Buscar `coracao` encontra "Coração Agradecido" | ✅                     |
+| `cargo test`                                   | **62 testes** passando |
+| `pnpm test` (Vitest)                           | **64 testes** passando |
+| clippy / eslint / tsc / prettier               | limpos                 |
+| RAM em repouso (Linux, sem GPU)                | 231 MB                 |
+| Bundle JS                                      | 76,0 kB gzip (+1,9 kB) |
+
 ## Próximo passo
 
-Formulário de cadastro e edição de músicas na interface, fechando o CRUD de
-ponta a ponta. Depois: seed de exemplo, e então o Presentation Engine.
+O **Presentation Engine**: lógica pura, coberta por testes antes de existir
+qualquer tela. Depois a segunda tela, que passa a ser só um observador dele.
 
 ## Fase 1 — passos restantes
 

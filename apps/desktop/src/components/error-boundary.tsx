@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
         className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center"
       >
         <h1 className="text-xl font-semibold">Algo deu errado nesta tela.</h1>
-        <p className="max-w-md text-sm text-[--color-content-muted]">
+        <p className="max-w-md text-sm text-content-muted">
           A apresentacao em andamento nao foi interrompida. Voce pode tentar recarregar esta parte
           da interface.
         </p>

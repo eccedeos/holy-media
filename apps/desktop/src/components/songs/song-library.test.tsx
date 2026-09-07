@@ -57,12 +57,18 @@ describe('SongLibrary', () => {
     expect(campo).toHaveValue('alel');
   });
 
-  it('mostra mensagem propria quando nao ha resultado', async () => {
-    vi.mocked(api.searchSongs).mockResolvedValue([]);
+  it('nao pisca "Buscando..." entre uma consulta e outra', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.searchSongs).mockResolvedValue([resumo('1', 'Grande e o Senhor')]);
 
     render(<SongLibrary />);
+    await screen.findByText('Grande e o Senhor');
 
-    expect(await screen.findByText('Nenhuma musica encontrada.')).toBeInTheDocument();
+    await user.type(screen.getByRole('searchbox', { name: /buscar musicas/i }), 'grande');
+    // Enquanto a nova consulta esta em voo, os resultados anteriores
+    // continuam na tela em vez de sumirem.
+    expect(screen.queryByText('Buscando...')).not.toBeInTheDocument();
+    expect(screen.getByText('Grande e o Senhor')).toBeInTheDocument();
   });
 
   it('mostra a mensagem amigavel do nucleo em caso de erro', async () => {
@@ -111,5 +117,45 @@ describe('SongLibrary', () => {
 
     await waitFor(() => expect(api.toggleSongFavorite).toHaveBeenCalledWith('1'));
     expect(api.getSong).not.toHaveBeenCalled();
+  });
+});
+
+describe('biblioteca vazia', () => {
+  it('oferece os exemplos quando nao ha nenhuma musica cadastrada', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.searchSongs).mockResolvedValue([]);
+    vi.mocked(api.seedExampleSongs).mockResolvedValue(3);
+
+    render(<SongLibrary />);
+    await user.click(await screen.findByRole('button', { name: /Adicionar musicas de exemplo/ }));
+
+    await waitFor(() => expect(api.seedExampleSongs).toHaveBeenCalled());
+  });
+
+  it('nao oferece exemplos quando a lista esta vazia por causa da busca', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.searchSongs).mockResolvedValue([]);
+
+    render(<SongLibrary />);
+    await user.type(screen.getByRole('searchbox', { name: /buscar musicas/i }), 'inexistente');
+
+    // Oferecer "adicionar exemplos" aqui sugeriria que a biblioteca esta
+    // vazia, quando na verdade a busca e' que nao achou nada.
+    expect(
+      await screen.findByText('Nenhuma musica encontrada para essa busca.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Adicionar musicas de exemplo/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('abre o formulario de cadastro pelo botao Nova musica', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.searchSongs).mockResolvedValue([]);
+
+    render(<SongLibrary />);
+    await user.click(screen.getByRole('button', { name: /Nova musica/ }));
+
+    expect(useSongsStore.getState().mode).toBe('create');
   });
 });

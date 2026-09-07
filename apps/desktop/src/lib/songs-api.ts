@@ -58,3 +58,11 @@ export function emptySongInput(): SongInput {
     slides: [],
   };
 }
+
+/**
+ * Insere musicas de exemplo, e apenas se a biblioteca estiver vazia.
+ * Devolve quantas foram inseridas.
+ */
+export function seedExampleSongs(): Promise<number> {
+  return invokeCommand<number>('songs_seed_examples');
+}

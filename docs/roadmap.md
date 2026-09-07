@@ -35,8 +35,9 @@ apenas este software.**
 - [x] Busca sem acento nos dois sentidos ("coracao" ↔ "Coração")
 - [x] Favoritos e histórico de uso
 - [x] Painel de biblioteca com busca instantânea (debounce + guarda de corrida)
-- [ ] Formulário de cadastro e edição de músicas na interface
-- [ ] Seed de exemplo para primeira execução
+- [x] Formulário de cadastro e edição (letra em texto; linha em branco separa slides)
+- [x] Exclusão com confirmação
+- [x] Músicas de exemplo, oferecidas na biblioteca vazia
 - [ ] Módulo de Bíblia: tradução, livro, capítulo, versículo
 - [ ] Busca bíblica por palavra e por referência
 - [ ] Presentation Engine (lógica pura, coberta por testes)

@@ -158,3 +158,87 @@ mod tests {
         assert!(now_millis() > 1_577_836_800_000);
     }
 }
+
+#[cfg(test)]
+mod file_tests {
+    //! Testes do banco **em disco**.
+    //!
+    //! Existem porque o banco em memoria nao cobre tudo: o SQLite ignora
+    //! `journal_mode = WAL` quando nao ha arquivo, entao o pragma que o app
+    //! usa em producao passaria despercebido pelos outros testes.
+
+    use super::*;
+    use std::path::PathBuf;
+
+    /// Diretorio temporario que se apaga sozinho ao fim do teste.
+    struct TempDir(PathBuf);
+
+    impl TempDir {
+        fn new() -> Self {
+            let path = std::env::temp_dir().join(format!("holy-media-{}", uuid::Uuid::now_v7()));
+            std::fs::create_dir_all(&path).expect("diretorio temporario");
+            Self(path)
+        }
+
+        fn file(&self, name: &str) -> PathBuf {
+            self.0.join(name)
+        }
+    }
+
+    impl Drop for TempDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn banco_em_disco_usa_wal() {
+        let dir = TempDir::new();
+        let db = Database::open(dir.file("teste.db")).expect("banco deve abrir");
+
+        let mode: String = db
+            .with_connection(|c| Ok(c.query_row("PRAGMA journal_mode", [], |row| row.get(0))?))
+            .expect("pragma deve responder");
+
+        assert_eq!(
+            mode.to_lowercase(),
+            "wal",
+            "sem WAL, buscar musica trava a gravacao"
+        );
+    }
+
+    #[test]
+    fn os_dados_sobrevivem_ao_fechamento_do_aplicativo() {
+        let dir = TempDir::new();
+        let caminho = dir.file("biblioteca.db");
+
+        {
+            let db = Database::open(&caminho).expect("banco deve abrir");
+            crate::songs::repository::create(
+                &db,
+                crate::songs::SongInput {
+                    title: "Musica salva".to_owned(),
+                    ..Default::default()
+                },
+            )
+            .expect("deveria criar");
+        } // fecha a conexao, como o app faria ao ser encerrado
+
+        let db = Database::open(&caminho).expect("banco deve reabrir");
+        let encontradas = crate::songs::repository::search(&db, "salva").expect("busca");
+
+        assert_eq!(encontradas.len(), 1);
+        assert_eq!(encontradas[0].title, "Musica salva");
+    }
+
+    #[test]
+    fn reabrir_um_banco_ja_migrado_nao_refaz_as_migrations() {
+        let dir = TempDir::new();
+        let caminho = dir.file("existente.db");
+
+        Database::open(&caminho).expect("primeira abertura");
+        // A segunda abertura quebraria com "table already exists" se a versao
+        // gravada no arquivo nao fosse respeitada.
+        Database::open(&caminho).expect("segunda abertura deve ser inofensiva");
+    }
+}

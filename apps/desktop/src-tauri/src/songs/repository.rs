@@ -7,7 +7,7 @@ use rusqlite::{params, Connection, OptionalExtension, Transaction};
 use uuid::Uuid;
 
 use super::model::{Song, SongInput, SongSlide, SongSummary};
-use super::search;
+use super::{search, seed};
 use crate::db::{now_millis, Database};
 use crate::error::{AppError, AppResult};
 
@@ -139,6 +139,33 @@ pub fn register_usage(db: &Database, id: &str) -> AppResult<()> {
         )?;
         Ok(())
     })
+}
+
+/// Insere as musicas de exemplo, e apenas se a biblioteca estiver vazia.
+///
+/// Devolve quantas foram inseridas -- zero quando ja havia musica. A guarda
+/// existe para que um clique repetido no botao nao encha a biblioteca de
+/// duplicatas.
+pub fn seed_examples(db: &Database) -> AppResult<usize> {
+    let is_empty: bool = db.with_connection(|connection| {
+        Ok(
+            connection.query_row("SELECT NOT EXISTS (SELECT 1 FROM songs)", [], |row| {
+                row.get(0)
+            })?,
+        )
+    })?;
+
+    if !is_empty {
+        return Ok(0);
+    }
+
+    let examples = seed::example_songs();
+    let total = examples.len();
+    for example in examples {
+        create(db, example)?;
+    }
+
+    Ok(total)
 }
 
 /// Busca por titulo, artista, autor, letra ou tag.
