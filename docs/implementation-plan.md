@@ -197,8 +197,14 @@ Desligar o modo de composição do WebKit levou o total a **231 MB**, economia d
 114 MB. Está aplicado, respeitando a variável se o usuário já a tiver definido,
 e marcado para reavaliação na Fase 2, quando houver vídeo.
 
-O orçamento foi revisado para 250 MB no Linux, e Windows — a plataforma real da
-maioria das igrejas — está marcado como **não medido** em vez de estimado.
+O orçamento foi revisado para 250 MB no Linux, e Windows ficou marcado como não
+medido.
+
+_(Correção posterior: o Windows foi medido, e o orçamento voltou a 150 MB. A
+revisão para 250 MB tinha sido feita em cima do PSS, uma métrica pessimista; em
+memória privada — a que responde "quanto o app tira da máquina" — o Windows
+consome 83 MB e o Linux 149 MB, ambos dentro do limite original. Ver
+[performance.md](performance.md).)_
 
 **Verificado rodando o aplicativo, não só pelos testes:**
 

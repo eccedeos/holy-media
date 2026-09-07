@@ -19,8 +19,7 @@ isso que a referência é essa.
 
 | Métrica                              | Limite    | Por quê                                        |
 | ------------------------------------ | --------- | ---------------------------------------------- |
-| RAM em repouso — Linux (WebKitGTK)   | < 250 MB  | piso alto da plataforma; ver a nota abaixo     |
-| RAM em repouso — Windows (WebView2)  | a medir   | plataforma real da maioria das igrejas         |
+| RAM em repouso (memória privada)     | < 150 MB  | precisa caber junto do resto que a igreja usa  |
 | RAM projetando (segunda janela)      | + <100 MB | a segunda tela não pode dobrar o custo         |
 | CPU em repouso                       | ~0 %      | nada de timer/polling rodando à toa            |
 | Tempo até a janela aparecer          | < 2 s     | ninguém espera o culto pelo software           |
@@ -35,17 +34,17 @@ Ambiente da medição: container Linux x86_64, Node 22, Rust 1.94, build release
 Números de RAM e tempo de partida dependem de máquina real com display; os que
 estão marcados como pendentes serão preenchidos quando houver um alvo com GUI.
 
-| Métrica                         | Medido      | Limite  | Folga |
-| ------------------------------- | ----------- | ------- | ----- |
-| Busca em 5000 músicas (release) | **11 ms**   | 50 ms   | 78 %  |
-| Busca em 5000 músicas (debug)   | 24 ms       | —       | —     |
-| JS do bundle (gzip)             | **76,0 kB** | 150 kB  | 49 %  |
-| CSS do bundle (gzip)            | **3,6 kB**  | —       | —     |
-| Binário release (Linux)         | **4,9 MB**  | 40 MB   | 88 %  |
-| RAM em repouso (Linux, sem GPU) | **231 MB**  | 250 MB  | 8 %   |
-| RAM em repouso (Windows 10/11)  | **368 MB**  | a rever | —     |
-| RAM em repouso (macOS)          | a medir     | —       | —     |
-| Tempo até a janela              | a medir     | 2 s     | —     |
+| Métrica                         | Medido      | Limite | Folga |
+| ------------------------------- | ----------- | ------ | ----- |
+| Busca em 5000 músicas (release) | **11 ms**   | 50 ms  | 78 %  |
+| Busca em 5000 músicas (debug)   | 24 ms       | —      | —     |
+| JS do bundle (gzip)             | **76,0 kB** | 150 kB | 49 %  |
+| CSS do bundle (gzip)            | **3,6 kB**  | —      | —     |
+| Binário release (Linux)         | **4,9 MB**  | 40 MB  | 88 %  |
+| RAM privada — Windows 10        | **83 MB**   | 150 MB | 45 %  |
+| RAM privada — Linux (sem GPU)   | **149 MB**  | 150 MB | 1 %   |
+| RAM privada — macOS             | a medir     | 150 MB | —     |
+| Tempo até a janela              | a medir     | 2 s    | —     |
 
 A busca foi medida no pior caso do ranking: um termo presente em todas as 5000
 músicas, obrigando o FTS5 a ordenar o conjunto inteiro. O teste
@@ -71,79 +70,83 @@ justificada de verdade.
 Estes números são de build release verificado, não de estimativa. São
 atualizados a cada fase.
 
-### Sobre a RAM: o orçamento original estava errado
+### Sobre a RAM: três métricas, e por que a escolha delas importa
 
-O limite de 150 MB deste documento foi escrito **antes de qualquer medição** —
-era uma intenção, não um número. Ao rodar o aplicativo pela primeira vez, a
-medição real no Linux foi de **345 MB de PSS**, mais que o dobro.
+Este documento errou duas vezes sobre memória antes de acertar, e as duas vezes
+pela mesma causa: **medir sem dizer qual métrica**. Fica registrado porque a
+armadilha é fácil de repetir.
 
-O detalhamento explica de onde vem:
+Há três formas de contar a memória de um processo, e elas diferem por um fator
+de quatro no mesmo aplicativo:
 
-| Processo               | PSS    |
-| ---------------------- | ------ |
-| `holy-media` (Rust)    | 99 MB  |
-| `WebKitWebProcess`     | 235 MB |
-| `WebKitNetworkProcess` | 22 MB  |
+| Métrica                                 | O que conta                                                                |
+| --------------------------------------- | -------------------------------------------------------------------------- |
+| **RSS** (Linux) / **working set** (Win) | tudo que está na RAM, com o compartilhado contado inteiro em cada processo |
+| **PSS** (só no Linux)                   | o compartilhado dividido entre quem o usa                                  |
+| **Privada**                             | só o que é exclusivo do processo — some se ele fechar                      |
 
-O núcleo Rust custa pouco. O peso é do **WebKitGTK**, o motor que o Tauri usa no
-Linux — e a medição foi feita sem GPU (renderização por software), que é o pior
-caso e também o caso de muito PC de igreja.
+Para "quanta memória este aplicativo tira da máquina", a resposta útil é a
+**privada**: o navegador embutido espalha o mesmo runtime por vários processos,
+e as outras duas métricas contam essa mesma memória repetidas vezes.
 
-Desligar o modo de composição do WebKit derrubou o total para **231 MB**, uma
-economia de 114 MB. Isso está aplicado no código (ver abaixo).
+### Medições nas duas plataformas
 
-Duas honestidades necessárias:
+Aplicativo aberto e parado, sem música selecionada:
 
-1. **O limite foi revisado para 250 MB no Linux**, porque 150 MB não é
-   alcançável nessa plataforma sem trocar de motor de renderização. Mover a
-   meta é ruim; fingir que o número antigo era atingível seria pior.
-2. **Windows foi medido depois** (ver a seção seguinte) e ficou em 368 MB de
-   working set — na mesma ordem de grandeza do Linux, não melhor.
+| Métrica           | Windows 10 | Linux (sem GPU) |
+| ----------------- | ---------- | --------------- |
+| Working set / RSS | 330 MB     | 383 MB          |
+| PSS               | —          | 232 MB          |
+| **Privada**       | **83 MB**  | **149 MB**      |
+| Processos         | 7          | 3               |
 
-Para comparação de ordem de grandeza: um Electron equivalente parte de 200–400
-MB **antes** do código da aplicação, com o Chromium inteiro no instalador. A
-escolha do Tauri continua certa; ela só não é mágica.
+Detalhe do Windows, que é a plataforma real da maioria das igrejas:
 
-### Windows: medido em máquina real
+| Processo                   | Working set | Privada    |
+| -------------------------- | ----------- | ---------- |
+| `holy-media` (núcleo Rust) | 22 MB       | **3,8 MB** |
+| `msedgewebview2` × 6       | 308 MB      | 79 MB      |
 
-Aplicativo aberto e parado, Windows 10/11, `WorkingSet64`:
+Máquina da medição: Windows 10 (19045), Intel UHD 730 + RTX 3050.
 
-| Processo                   | Working set |
-| -------------------------- | ----------- |
-| `holy-media` (núcleo Rust) | **25 MB**   |
-| `msedgewebview2` × 6       | 343 MB      |
-| **Total**                  | **368 MB**  |
+### O que os números dizem
 
-Duas leituras deste número.
+**O núcleo Rust custa 3,8 MB de memória privada.** É a parte que nós
+escrevemos — banco, busca, IPC, o domínio inteiro de músicas — e ela
+desaparece no total. Confirma a escolha do [ADR 0002](adr/0002-acesso-a-dados-sqlite-sem-orm.md):
+sem ORM e com o SQLite embutido, o custo do nosso código é ruído.
 
-**O núcleo Rust custa 25 MB.** É a parte que nós escrevemos, e ela é
-irrelevante no total — no Linux o mesmo núcleo aparece com 175 MB de RSS, mas
-quase tudo ali é biblioteca de sistema mapeada e contada em dobro. Os 25 MB do
-Windows são a medida mais limpa que temos do custo real do nosso código.
+**Windows consome quase metade do Linux** (83 contra 149 MB privados). O
+WebView2 é de fato mais econômico que o WebKitGTK — só não do jeito que as
+métricas brutas sugeriam, onde as plataformas pareciam empatadas.
 
-**O navegador embutido custa o resto**, espalhado por 6 processos. Comparando
-na mesma métrica (working set no Windows, RSS no Linux — as duas contam memória
-compartilhada), as plataformas empatam: 368 MB contra 389 MB. A esperança de que
-o WebView2 fosse muito mais econômico que o WebKitGTK **não se confirmou**.
+**O orçamento de 150 MB estava certo desde o começo.** Ele foi revisado para
+250 MB numa versão anterior deste documento porque a medição do Linux tinha sido
+lida em PSS, uma métrica mais pessimista. Com a métrica certa, as duas
+plataformas cabem — o Windows com folga de 45 %, o Linux por pouco. O limite
+volta a ser 150 MB, agora **com a métrica dita por extenso**, que era o que
+faltava.
 
-Falta o número decisivo: o **working set privado**, que desconta o que os seis
-processos do WebView2 compartilham entre si. Como eles compartilham o runtime do
-navegador inteiro, a diferença tende a ser grande — e é esse valor, não os
-368 MB, que diz quanta memória o aplicativo realmente tira da máquina.
-
-### Uma otimização que existe, e por que ela não foi aplicada
+### A otimização que não foi aplicada, e agora não precisa ser
 
 O WebView2 aceita `--renderer-process-limit=1`, que colapsaria os seis processos
-em menos. Seria a economia mais óbvia disponível.
+em menos. Era a economia mais óbvia disponível, e ela foi deliberadamente
+deixada de lado porque **conflita com o
+[ADR 0004](adr/0004-segunda-tela-como-janela-tauri.md)**: a segunda tela é uma
+janela separada justamente para que um erro no Control Room não derrube a
+projeção, e um renderizador compartilhado acabaria com essa garantia.
 
-Ela não foi aplicada porque **conflita com o [ADR 0004](adr/0004-segunda-tela-como-janela-tauri.md)**:
-a segunda tela é uma janela separada justamente para que um erro no Control Room
-não derrube a projeção. Se as duas janelas dividirem um renderizador, essa
-garantia deixa de existir — e ela vale mais do que alguns megabytes, porque o
-que está em jogo é a tela que a congregação está olhando.
+Com 83 MB privados no Windows, não há troca a fazer. A garantia de isolamento
+fica de pé, e o assunto está encerrado até que alguma medição futura o reabra.
 
-A decisão fica para depois de medir o working set privado. Se o consumo real já
-couber, não há troca a fazer.
+### O que ainda falta medir
+
+- **macOS** (WKWebView) — nenhuma medição.
+- **Máquina sem aceleração de vídeo.** A medição do Windows foi feita num PC com
+  GPU. O alvo de referência deste documento — Celeron com gráficos integrados
+  antigos — pode consumir mais, como aconteceu no Linux.
+- **Consumo projetando**, com a segunda janela aberta. Só existe quando a
+  segunda tela existir.
 
 ## Como medir
 
@@ -211,9 +214,9 @@ done
 
 ## Decisões já tomadas em nome disso
 
-**Modo de composição do WebKit desligado no Linux.** Medido: 345 MB → 231 MB de
-PSS. A troca é animação e vídeo mais lentos, o que não pesa enquanto a projeção
-é texto estático. Está em `lib.rs`, respeita a variável se o usuário já a tiver
+**Modo de composição do WebKit desligado no Linux.** Medido em PSS, a métrica
+disponível na época: 345 MB → 231 MB. A troca é animação e vídeo mais lentos, o
+que não pesa enquanto a projeção é texto estático. Está em `lib.rs`, respeita a variável se o usuário já a tiver
 definido, e **a Fase 2 (vídeo na segunda tela) precisa reavaliar** — provavelmente
 religando a composição quando houver GPU.
 

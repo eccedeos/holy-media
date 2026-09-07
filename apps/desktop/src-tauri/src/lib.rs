@@ -23,7 +23,11 @@ const DATABASE_FILE: &str = "holy-media.db";
 /// No Linux o Tauri usa WebKitGTK, e sem aceleracao de video o seu modo de
 /// composicao aloca buffers grandes por conta propria. Medido neste projeto,
 /// com renderizacao por software: 345 MB de PSS com composicao ligada contra
-/// 225 MB com ela desligada -- 120 MB, num alvo que tem 4 GB no total.
+/// 231 MB com ela desligada -- 114 MB, num alvo que tem 4 GB no total.
+///
+/// (PSS conta a memoria compartilhada dividida entre os processos. Em memoria
+/// privada o total fica em 149 MB no Linux e 83 MB no Windows -- ver
+/// `docs/performance.md`.)
 ///
 /// A troca e' animacao e video mais lentos, o que nao pesa enquanto a projecao
 /// e' texto estatico. **A Fase 2 (video na segunda tela) precisa reavaliar
