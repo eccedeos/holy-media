@@ -1,8 +1,9 @@
 /**
  * Contratos compartilhados do Holy Media.
  *
- * Este pacote e' *type-only* por design: ele nao carrega runtime, portanto nao
- * pesa no bundle do desktop nem no futuro controle remoto. Ele existe para que
+ * O pacote e' quase inteiramente de tipos, que somem no build. A unica coisa
+ * com runtime e' o nome do evento de apresentacao -- uma string que precisa ser
+ * a mesma dos dois lados da ponte. Ele existe para que
  * o nucleo Rust, a interface do operador e o controle remoto conversem sobre as
  * mesmas estruturas sem duplicacao.
  *
@@ -13,4 +14,5 @@
 
 export * from './app.js';
 export * from './errors.js';
+export * from './presentation.js';
 export * from './songs.js';

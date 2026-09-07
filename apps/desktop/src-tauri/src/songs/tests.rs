@@ -505,3 +505,29 @@ fn os_exemplos_sao_encontraveis_pela_busca_sem_acento() {
     // com pressa, agora verificavel abrindo o app.
     assert_eq!(repository::search(&db, "coracao").expect("busca").len(), 1);
 }
+
+#[test]
+fn datas_iguais_sao_desempatadas_por_titulo() {
+    let db = banco();
+    for titulo in ["Zacarias", "Aleluia", "Marcos"] {
+        repository::create(&db, musica(titulo)).expect("deveria criar");
+    }
+
+    // Forca o empate, que e' o caso real: musicas cadastradas ou importadas no
+    // mesmo milissegundo. Sem criterio secundario o SQLite devolve ordem
+    // arbitraria, e a lista do operador se reembaralha entre uma abertura e
+    // outra -- foi assim que o problema apareceu, rodando o aplicativo.
+    db.with_connection(|c| {
+        c.execute("UPDATE songs SET updated_at = 1000", [])?;
+        Ok(())
+    })
+    .expect("empate");
+
+    let titulos: Vec<String> = repository::search(&db, "")
+        .expect("busca")
+        .into_iter()
+        .map(|s| s.title)
+        .collect();
+
+    assert_eq!(titulos, ["Aleluia", "Marcos", "Zacarias"]);
+}

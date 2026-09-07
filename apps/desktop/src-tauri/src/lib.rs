@@ -7,6 +7,7 @@
 mod commands;
 mod db;
 mod error;
+mod presentation;
 mod songs;
 mod state;
 
@@ -54,7 +55,7 @@ pub fn run() {
             std::fs::create_dir_all(&data_dir)?;
 
             let database = db::Database::open(data_dir.join(DATABASE_FILE))?;
-            app.manage(state::AppState { db: database });
+            app.manage(state::AppState::new(database));
 
             Ok(())
         })
@@ -70,6 +71,15 @@ pub fn run() {
             commands::songs::songs_seed_examples,
             commands::songs::songs_list_favorites,
             commands::songs::songs_list_recently_used,
+            commands::presentation::presentation_state,
+            commands::presentation::presentation_present_song,
+            commands::presentation::presentation_next,
+            commands::presentation::presentation_previous,
+            commands::presentation::presentation_first,
+            commands::presentation::presentation_last,
+            commands::presentation::presentation_go_to,
+            commands::presentation::presentation_toggle_blackout,
+            commands::presentation::presentation_clear,
         ])
         .run(tauri::generate_context!())
         .expect("falha ao iniciar a aplicacao Tauri");

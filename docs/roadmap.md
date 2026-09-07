@@ -40,7 +40,8 @@ apenas este software.**
 - [x] Músicas de exemplo, oferecidas na biblioteca vazia
 - [ ] Módulo de Bíblia: tradução, livro, capítulo, versículo
 - [ ] Busca bíblica por palavra e por referência
-- [ ] Presentation Engine (lógica pura, coberta por testes)
+- [x] Presentation Engine (lógica pura, 23 testes)
+- [x] Controle da projeção no Control Room: apresentar, avançar, voltar, tela preta
 - [ ] Segunda tela: escolha de monitor, fullscreen, sem cursor, tela preta
 - [ ] Backgrounds: cor sólida, gradiente e imagem
 - [ ] Ordem do culto: adicionar, remover, reordenar, duplicar, salvar

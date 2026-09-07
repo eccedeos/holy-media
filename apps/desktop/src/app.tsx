@@ -3,6 +3,8 @@ import { useAppStore } from '@/store/app-store';
 import { isTauriAvailable } from '@/lib/ipc';
 import { SongLibrary } from '@/components/songs/song-library';
 import { SongPanel } from '@/components/songs/song-panel';
+import { PresentationControls } from '@/components/presentation/presentation-controls';
+import { usePresentationStore } from '@/store/presentation-store';
 
 /**
  * Control Room.
@@ -16,10 +18,20 @@ export function App() {
   const info = useAppStore((state) => state.info);
   const status = useAppStore((state) => state.status);
   const loadAppInfo = useAppStore((state) => state.loadAppInfo);
+  const connect = usePresentationStore((store) => store.connect);
 
   useEffect(() => {
     void loadAppInfo();
   }, [loadAppInfo]);
+
+  useEffect(() => {
+    // `connect` devolve o cancelamento da assinatura do evento. Sem cancelar,
+    // um recarregamento da interface deixaria ouvintes acumulados.
+    const pendente = connect();
+    return () => {
+      void pendente.then((unlisten) => unlisten());
+    };
+  }, [connect]);
 
   return (
     <div className="flex h-full flex-col">
@@ -34,12 +46,18 @@ export function App() {
         </p>
       </header>
 
-      <main className="grid min-h-0 flex-1 grid-cols-[minmax(260px,340px)_1fr]">
+      <main className="grid min-h-0 flex-1 grid-cols-[minmax(240px,300px)_1fr_minmax(260px,320px)]">
         <div className="min-h-0 border-r border-line">
           <SongLibrary />
         </div>
         <div className="min-h-0">
           <SongPanel />
+        </div>
+        {/* Coluna do operador: previa e comandos ficam sempre visiveis, para
+            que avancar slide nunca dependa de rolar ou trocar de aba. A ordem
+            do culto ocupa o espaco abaixo quando chegar. */}
+        <div className="flex min-h-0 flex-col border-l border-line">
+          <PresentationControls />
         </div>
       </main>
     </div>

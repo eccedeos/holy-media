@@ -7,10 +7,11 @@ segunda tela, com controle rápido pelo operador.
 fraco que a igreja já tem, funcionar **sem internet** e nunca travar no meio de
 um culto.
 
-> **Estado atual: Fase 1 em andamento.** A biblioteca de músicas funciona:
-> banco SQLite local, cadastro de músicas com letra dividida em slides, e busca
-> por título, artista, letra ou tag — 11 ms numa biblioteca de 5000 músicas,
-> ignorando acentos. Bíblia, apresentação e segunda tela são os próximos passos.
+> **Estado atual: Fase 1 em andamento.** Já dá para cadastrar músicas, buscar
+> por título, artista, letra ou tag (11 ms numa biblioteca de 5000, ignorando
+> acentos) e **projetar**: colocar no ar, avançar e voltar slides, tela preta.
+> Falta a janela na segunda tela — hoje a projeção aparece só na prévia do
+> operador. Depois: Bíblia e ordem do culto.
 > Veja [docs/roadmap.md](docs/roadmap.md).
 
 ## Por que Tauri e não Electron
@@ -108,6 +109,7 @@ A estrutura cresce por necessidade, não por antecipação: `local-server`,
 
 - [Arquitetura](docs/architecture.md)
 - [Banco de dados e busca](docs/database.md)
+- [Presentation Engine](docs/presentation-engine.md)
 - [Roadmap por fases](docs/roadmap.md)
 - [Plano de implementação](docs/implementation-plan.md)
 - [Orçamento de performance](docs/performance.md)

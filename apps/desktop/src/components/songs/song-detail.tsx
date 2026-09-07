@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Play, Trash2 } from 'lucide-react';
 import { useSongsStore } from '@/store/songs-store';
+import { usePresentationStore } from '@/store/presentation-store';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 /**
  * Detalhe da musica selecionada: metadados e slides na ordem de projecao.
@@ -13,6 +15,9 @@ export function SongDetail() {
   const song = useSongsStore((state) => state.selected);
   const startEdit = useSongsStore((state) => state.startEdit);
   const remove = useSongsStore((state) => state.remove);
+  const present = usePresentationStore((store) => store.present);
+  const goTo = usePresentationStore((store) => store.goTo);
+  const live = usePresentationStore((store) => store.state);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   if (song === null) {
@@ -38,6 +43,10 @@ export function SongDetail() {
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
+            <Button size="sm" onClick={() => void present(song.id)}>
+              <Play className="size-4" aria-hidden />
+              Apresentar
+            </Button>
             <Button variant="ghost" size="sm" onClick={startEdit}>
               <Pencil className="size-4" aria-hidden />
               Editar
@@ -91,14 +100,39 @@ export function SongDetail() {
           <p className="text-sm text-content-muted">Esta musica ainda nao tem slides.</p>
         ) : (
           <ol className="flex flex-col gap-3">
-            {song.slides.map((slide) => (
-              <li key={slide.id} className="rounded-md border border-line bg-surface-raised p-3">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-content-muted">
-                  {slide.label === '' ? `Slide ${slide.position + 1}` : slide.label}
-                </p>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">{slide.content}</p>
-              </li>
-            ))}
+            {song.slides.map((slide) => {
+              // Um slide so' esta "no ar" se for desta musica: o motor guarda a
+              // origem justamente para o Control Room nao destacar a linha
+              // errada enquanto outra musica projeta.
+              const projetando = live.sourceId === song.id;
+              const noAr = projetando && live.index === slide.position;
+
+              return (
+                <li key={slide.id}>
+                  <button
+                    type="button"
+                    // Clicar num slide so' projeta se a musica ja estiver no ar.
+                    // Pular direto para o meio de outra musica trocaria o que a
+                    // congregacao ve sem o operador pedir.
+                    onClick={() => {
+                      if (projetando) void goTo(slide.position);
+                    }}
+                    aria-current={noAr ? 'true' : undefined}
+                    className={cn(
+                      'w-full rounded-md border bg-surface-raised p-3 text-left transition-colors',
+                      noAr ? 'border-accent' : 'border-line',
+                      projetando ? 'hover:border-content-muted' : 'cursor-default',
+                    )}
+                  >
+                    <p className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-content-muted">
+                      {slide.label === '' ? `Slide ${slide.position + 1}` : slide.label}
+                      {noAr && <span className="text-accent">· no ar</span>}
+                    </p>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{slide.content}</p>
+                  </button>
+                </li>
+              );
+            })}
           </ol>
         )}
       </div>

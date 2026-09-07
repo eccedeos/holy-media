@@ -219,10 +219,58 @@ consome 83 MB e o Linux 149 MB, ambos dentro do limite original. Ver
 | RAM em repouso (Linux, sem GPU)                | 231 MB                 |
 | Bundle JS                                      | 76,0 kB gzip (+1,9 kB) |
 
+## Fase 1, passo 3 — Presentation Engine
+
+**Entregue:**
+
+- Motor de apresentação em lógica pura: sem banco, sem DOM, sem Tauri, sem
+  relógio. 23 testes que rodam em microssegundos.
+- Nove comandos IPC, com evento `presentation:state` para todas as janelas.
+- Controle no Control Room: apresentar, avançar, voltar, tela preta, tirar do
+  ar, e prévia do que está sendo projetado.
+- Slides clicáveis no detalhe da música, com destaque do que está no ar.
+
+**A decisão central: o motor não conhece música.** Ele recebe slides já
+resolvidos. Quem traduz uma música em slides é a camada de comandos. É essa
+fronteira que vai permitir acrescentar Bíblia, vídeo ou QR Code sem tocar no
+motor — e é ela que o mantém testável por inteiro.
+
+**Comportamentos que vêm de como um culto funciona**, cada um com teste: a
+navegação não circula (voltar ao verso 1 sozinho seria pior que nada); índice
+fora da faixa é ignorado, não truncado; a tela preta preserva a posição; carregar
+outra música mantém a tela preta — se reacendesse, a congregação veria a
+preparação; e o rótulo do slide ("Refrão") nunca é projetado.
+
+**A store do frontend não recalcula nada**, nem os limites de navegação. Guarda o
+último estado que o núcleo mandou. Duplicar a regra criaria uma segunda verdade,
+e as duas divergiriam no pior momento. É também o que torna o controle remoto da
+Fase 3 quase gratuito: o celular vira mais um observador.
+
+**Dois defeitos encontrados rodando o aplicativo:**
+
+1. **A biblioteca se reembaralhava entre aberturas.** As músicas do seed são
+   inseridas no mesmo milissegundo, e `ORDER BY updated_at DESC` com empate
+   devolve ordem arbitrária no SQLite. Corrigido com desempate por título — e o
+   teste foi verificado quebrando de propósito, para provar que ele pega.
+2. **Um vão morto na coluna direita**, porque a prévia estava presa ao rodapé.
+   Subiu para o topo; o espaço abaixo fica para a ordem do culto.
+
+**Verificado rodando o aplicativo:** música colocada no ar, dois avanços até
+"Verso 2 · 3 de 4", tela preta ativa **com a posição preservada** — a prévia
+mostra preto enquanto o Control Room continua marcando o slide no ar.
+
+| Verificação                      | Resultado              |
+| -------------------------------- | ---------------------- |
+| `cargo test`                     | **88 testes** passando |
+| `pnpm test` (Vitest)             | **81 testes** passando |
+| clippy / eslint / tsc / prettier | limpos                 |
+| Bundle JS                        | 78,1 kB gzip (+2,1 kB) |
+
 ## Próximo passo
 
-O **Presentation Engine**: lógica pura, coberta por testes antes de existir
-qualquer tela. Depois a segunda tela, que passa a ser só um observador dele.
+A **janela de projeção** na segunda tela: escolha de monitor, tela cheia, cursor
+escondido. O motor já está pronto — a janela é só mais um observador dele, e
+renderiza o mesmo `Output` que a prévia já renderiza hoje.
 
 ## Fase 1 — passos restantes
 

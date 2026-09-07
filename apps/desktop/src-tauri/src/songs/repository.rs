@@ -235,7 +235,11 @@ fn list_recent(connection: &Connection) -> AppResult<Vec<SongSummary>> {
         "SELECT s.id, s.title, s.artist, s.favorite, s.updated_at,
                 (SELECT count(*) FROM song_slides WHERE song_id = s.id)
            FROM songs s
-          ORDER BY s.updated_at DESC
+          -- O desempate por titulo nao e' cosmetico: musicas cadastradas ou
+          -- importadas no mesmo milissegundo empatam em `updated_at`, e sem
+          -- criterio secundario o SQLite devolve ordem arbitraria -- a lista
+          -- do operador se reembaralha entre uma abertura e outra.
+          ORDER BY s.updated_at DESC, s.title COLLATE NOCASE
           LIMIT ?1",
     )?;
     collect_summaries(&mut statement, params![SEARCH_LIMIT as i64])
