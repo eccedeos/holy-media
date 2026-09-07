@@ -39,8 +39,21 @@ sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev \
   libayatana-appindicator3-dev librsvg2-dev patchelf
 ```
 
-No Windows: WebView2 (já presente no Windows 10/11 atualizado) + Build Tools do
-Visual Studio. No macOS: Xcode Command Line Tools.
+**No Windows**, para compilar são necessários:
+
+1. [Node.js 22+](https://nodejs.org) — depois, `corepack enable` no PowerShell
+   habilita o pnpm sem instalação separada
+2. [Rust](https://rustup.rs) (`rustup-init.exe`)
+3. [Build Tools do Visual Studio](https://visualstudio.microsoft.com/pt-br/visual-studio-build-tools/),
+   com a carga de trabalho **"Desenvolvimento para desktop com C++"**
+
+O WebView2 já vem no Windows 10/11 atualizado.
+
+**Não quer instalar nada?** A aba **Actions** do repositório tem o workflow
+**"Build do aplicativo"**: dispare pelo botão _Run workflow_ e baixe o
+executável pronto no fim. Ver [docs/performance.md](docs/performance.md#como-medir).
+
+**No macOS**: Xcode Command Line Tools.
 
 ## Começando
 

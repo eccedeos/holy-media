@@ -105,6 +105,48 @@ Para comparação de ordem de grandeza: um Electron equivalente parte de 200–4
 MB **antes** do código da aplicação, com o Chromium inteiro no instalador. A
 escolha do Tauri continua certa; ela só não é mágica.
 
+## Como medir
+
+### Sem instalar nada (recomendado)
+
+O executável é compilado pelo GitHub. Na aba **Actions** do repositório,
+escolha **"Build do aplicativo"** → **Run workflow** → selecione a branch →
+**Run**. Ao terminar (~10 min), baixe o artefato `holy-media-windows` e
+descompacte. O `holy-media.exe` roda direto: no Windows 10/11 o WebView2 já vem
+com o sistema, então não há nada a instalar.
+
+### Medindo no Windows
+
+Com o aplicativo aberto e parado, no PowerShell:
+
+```powershell
+# O WebView2 roda em processos separados (msedgewebview2), e eles contam.
+Get-Process holy-media, msedgewebview2 -ErrorAction SilentlyContinue |
+  Select-Object Name, Id, @{n='MB';e={[math]::Round($_.WorkingSet64/1MB,1)}} |
+  Format-Table -AutoSize
+
+# Total
+'{0:N0} MB no total' -f ((Get-Process holy-media, msedgewebview2 `
+  -ErrorAction SilentlyContinue |
+  Measure-Object WorkingSet64 -Sum).Sum / 1MB)
+```
+
+O `WorkingSet64` é o equivalente do RSS no Linux: conta memória compartilhada
+em cada processo, então **superestima**. Para o número mais próximo do PSS que
+usamos aqui, o Gerenciador de Tarefas mostra "Conjunto de trabalho (privado)" na
+aba Detalhes, ativando a coluna.
+
+O que interessa registrar: o total, o número de processos e se a máquina tem GPU
+(sem aceleração, o navegador embutido consome bem mais).
+
+### Medindo no Linux
+
+```bash
+for p in $(pgrep -x holy-media; pgrep -f WebKitWebProcess); do
+  awk '/^Pss:/{s+=$2} END{print FILENAME": "s/1024" MB"}' /proc/$p/smaps_rollup
+done
+```
+
 ## Decisões já tomadas em nome disso
 
 **Modo de composição do WebKit desligado no Linux.** Medido: 345 MB → 231 MB de

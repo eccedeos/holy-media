@@ -1,0 +1,85 @@
+name: Build do aplicativo
+
+# Disparado a mao pela aba Actions do GitHub. O objetivo e' produzir um
+# executavel pronto para quem nao tem (nem quer instalar) a cadeia de
+# ferramentas: Rust, Node e as bibliotecas de sistema somam varios GB.
+on:
+  workflow_dispatch:
+    inputs:
+      instalador:
+        description: 'Gerar tambem o instalador (.msi / .deb / .dmg)'
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: ${{ matrix.rotulo }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rotulo: Windows
+            artefato: holy-media-windows
+          - os: ubuntu-latest
+            rotulo: Linux
+            artefato: holy-media-linux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias de sistema (so no Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libsoup-3.0-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Compilar
+        working-directory: apps/desktop
+        shell: bash
+        run: |
+          if [ "${{ inputs.instalador }}" = "true" ]; then
+            pnpm tauri build
+          else
+            pnpm tauri build --no-bundle
+          fi
+
+      # O executavel puro basta para rodar e medir. No Windows 10/11 o WebView2
+      # ja vem com o sistema, entao nao ha nada a instalar.
+      - name: Publicar o executavel
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artefato }}
+          if-no-files-found: error
+          path: |
+            apps/desktop/src-tauri/target/release/holy-media
+            apps/desktop/src-tauri/target/release/holy-media.exe
+
+      - name: Publicar o instalador
+        if: inputs.instalador
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artefato }}-instalador
+          if-no-files-found: warn
+          path: |
+            apps/desktop/src-tauri/target/release/bundle/**/*.msi
+            apps/desktop/src-tauri/target/release/bundle/**/*.exe
+            apps/desktop/src-tauri/target/release/bundle/**/*.deb
+            apps/desktop/src-tauri/target/release/bundle/**/*.AppImage
