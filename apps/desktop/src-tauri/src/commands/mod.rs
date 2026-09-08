@@ -7,6 +7,7 @@
 pub mod app;
 pub mod display;
 pub mod presentation;
+pub mod services;
 pub mod songs;
 
 pub use app::AppInfo;

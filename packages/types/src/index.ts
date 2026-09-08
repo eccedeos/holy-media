@@ -16,4 +16,5 @@ export * from './app.js';
 export * from './display.js';
 export * from './errors.js';
 export * from './presentation.js';
+export * from './services.js';
 export * from './songs.js';

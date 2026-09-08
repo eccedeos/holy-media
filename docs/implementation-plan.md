@@ -315,11 +315,60 @@ foi sempre com um só. A escolha de monitor, a listagem e o tratamento de "monit
 desconectado" estão implementados e cobertos por teste, mas o posicionamento real
 numa segunda tela precisa de uma máquina com projetor ou TV ligada.
 
+## Fase 1, passo 5 — Ordem do culto
+
+**Entregue:**
+
+- Domínio `services`: CRUD do culto, itens (adicionar música, remover,
+  duplicar, mover), com título do item copiado no momento em que entra na
+  lista — se a música for renomeada depois, a ordem já preparada continua
+  legível com o nome de quando foi montada.
+- Coluna do operador ganha a seção "Ordem do culto": clicar num item apresenta
+  a música (reusa o comando existente, não é um motor paralelo); setas movem
+  para cima/baixo; ícones duplicam e removem.
+- Botão "Adicionar" no detalhe da música. Sem culto ativo, o primeiro clique
+  cria um com título padrão — a ordem do culto nasce no primeiro "adicionar",
+  em vez de exigir um passo de configuração antes.
+
+**Um bug de concorrência SQL, encontrado duas vezes na mesma classe.** O
+`UNIQUE (service_id, position)` é verificado linha a linha durante um `UPDATE`,
+não só ao final da instrução. Deslocar um intervalo inteiro numa única
+instrução (para abrir ou fechar espaço ao mover ou duplicar um item) pode
+colidir a meio caminho, dependendo da ordem em que o SQLite decide processar as
+linhas.
+
+Apareceu primeiro em `move_item`, pego por teste (verificado quebrando de
+propósito). A correção — um salto por uma zona de posições bem negativa antes
+de pousar no lugar final, para que nenhuma linha tocada assuma, mesmo por um
+instante, um valor que outra já ocupa — resolveu ali.
+
+**Apareceu de novo em `duplicate_item`, mas só ao rodar o aplicativo.** O teste
+original usava dois itens, e com uma única linha deslocando nunca há colisão.
+Com uma ordem do culto de três músicas montada à mão no app, o "Nao foi
+possivel acessar a biblioteca local." apareceu na tela ao duplicar o primeiro
+item. Mesma causa, mesma correção. O teste de regressão agora usa três itens —
+o número mínimo que expõe a classe de bug — e foi verificado falhando com a
+correção revertida antes de ser aceito.
+
+**Verificado rodando o aplicativo:** ordem do culto com três músicas montada
+pela interface; apresentar clicando num item da lista; mover, duplicar e
+remover, com a projeção continuando a acompanhar a música certa durante todas
+essas operações (o destaque "no ar" compara por id de origem, não por posição
+na lista — mudar a ordem não pode perder de vista o que está no ar).
+
+| Verificação                                | Resultado                     |
+| ------------------------------------------ | ----------------------------- |
+| Ordem do culto montada e usada no app real | ✅                            |
+| Duplicar com 3+ itens (o bug real)         | ✅ (era ❌ antes da correção) |
+| `cargo test` / `pnpm test`                 | 110 / 122                     |
+| clippy / eslint / tsc / prettier           | limpos                        |
+| Bundle JS                                  | 80,5 kB gzip                  |
+
 ## Próximo passo
 
-**Ordem do culto** — a playlist que amarra músicas, e depois versículos, numa
-sequência. É o que falta para o critério da Fase 1 ser atingível: conduzir um
-culto inteiro sem sair do software.
+**Bíblia** — tradução, livro, capítulo, versículo, com busca. É o último bloco
+de conteúdo que falta para o critério da Fase 1: conduzir um culto inteiro sem
+sair do software.
 
 ## Fase 1 — passos restantes
 

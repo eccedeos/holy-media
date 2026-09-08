@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Pencil, Play, Trash2 } from 'lucide-react';
+import { ListPlus, Pencil, Play, Trash2 } from 'lucide-react';
 import { useSongsStore } from '@/store/songs-store';
 import { usePresentationStore } from '@/store/presentation-store';
+import { useServicesStore } from '@/store/services-store';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +19,7 @@ export function SongDetail() {
   const present = usePresentationStore((store) => store.present);
   const goTo = usePresentationStore((store) => store.goTo);
   const live = usePresentationStore((store) => store.state);
+  const addSongToService = useServicesStore((store) => store.addSong);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   if (song === null) {
@@ -46,6 +48,10 @@ export function SongDetail() {
             <Button size="sm" onClick={() => void present(song.id)}>
               <Play className="size-4" aria-hidden />
               Apresentar
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => void addSongToService(song.id)}>
+              <ListPlus className="size-4" aria-hidden />
+              Adicionar
             </Button>
             <Button variant="ghost" size="sm" onClick={startEdit}>
               <Pencil className="size-4" aria-hidden />

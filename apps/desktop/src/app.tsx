@@ -5,6 +5,7 @@ import { SongLibrary } from '@/components/songs/song-library';
 import { SongPanel } from '@/components/songs/song-panel';
 import { PresentationControls } from '@/components/presentation/presentation-controls';
 import { DisplayPicker } from '@/components/presentation/display-picker';
+import { ServiceOrder } from '@/components/service/service-order';
 import { usePresentationStore } from '@/store/presentation-store';
 
 /**
@@ -60,6 +61,7 @@ export function App() {
         <div className="flex min-h-0 flex-col border-l border-line">
           <DisplayPicker />
           <PresentationControls />
+          <ServiceOrder />
         </div>
       </main>
     </div>

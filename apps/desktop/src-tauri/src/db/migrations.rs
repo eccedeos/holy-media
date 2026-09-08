@@ -15,11 +15,18 @@ use crate::error::{AppError, AppResult};
 
 /// As migrations, em ordem. **Nunca edite uma migration ja publicada**: um
 /// banco existente nao a executaria de novo. Adicione a proxima no fim.
-const MIGRATIONS: &[Migration] = &[Migration {
-    version: 1,
-    name: "songs",
-    sql: include_str!("migrations/0001_songs.sql"),
-}];
+const MIGRATIONS: &[Migration] = &[
+    Migration {
+        version: 1,
+        name: "songs",
+        sql: include_str!("migrations/0001_songs.sql"),
+    },
+    Migration {
+        version: 2,
+        name: "services",
+        sql: include_str!("migrations/0002_services.sql"),
+    },
+];
 
 struct Migration {
     version: i64,

@@ -9,6 +9,7 @@ mod db;
 mod display;
 mod error;
 mod presentation;
+mod services;
 mod songs;
 mod state;
 
@@ -85,6 +86,15 @@ pub fn run() {
             commands::display::display_state,
             commands::display::display_open,
             commands::display::display_close,
+            commands::services::services_list,
+            commands::services::services_get,
+            commands::services::services_create,
+            commands::services::services_rename,
+            commands::services::services_delete,
+            commands::services::services_add_song,
+            commands::services::services_remove_item,
+            commands::services::services_duplicate_item,
+            commands::services::services_move_item,
         ])
         .run(tauri::generate_context!())
         .expect("falha ao iniciar a aplicacao Tauri");
