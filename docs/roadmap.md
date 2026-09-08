@@ -3,6 +3,10 @@
 Uma fase só começa quando a anterior está verde: testes passando, lint limpo,
 build funcionando. Fase quebrada não avança.
 
+As Fases 2 a 4 incluem itens de backlog vindos de um levantamento do
+concorrente de referência — ver [`holyrics-comparison.md`](holyrics-comparison.md)
+para as fontes e o raciocínio de cada um.
+
 ---
 
 ## Fase 0 — Fundação ✅ concluída
@@ -58,6 +62,11 @@ apenas este software.**
 - [ ] Tela de espera configurável
 - [ ] Layouts de slide (posição do texto, tamanho, contorno)
 - [ ] Preview do próximo slide
+- [ ] Cronômetro / contagem regressiva como item de apresentação
+- [ ] Apresentação automática: avanço temporizado de uma sequência, com
+      controle de play/pause (carrossel de imagens, por exemplo)
+- [ ] Avisos sobrepostos à projeção — faixa no topo/rodapé, configurável, que
+      aparece **sem** interromper o que está no ar
 
 ---
 
@@ -70,6 +79,7 @@ apenas este software.**
 - [ ] Selecionar item da playlist e slide específico
 - [ ] Protocolo WebSocket documentado e tipado
 - [ ] Reconexão automática quando o Wi-Fi oscila
+- [ ] Enviar mídia do celular para o computador pela mesma PWA
 
 ---
 
@@ -78,8 +88,25 @@ apenas este software.**
 - [ ] Importadores: TXT, JSON, CSV (interface `LyricsImporter`)
 - [ ] Backup, restauração e exportação
 - [ ] Temas e atalhos configuráveis
-- [ ] Suporte a mais de dois monitores
-- [ ] Preview avançado (stage display para os músicos)
+- [ ] Suporte a mais de dois monitores, incluindo uma saída via navegador HTTP
+      na rede local (útil para uma Smart TV, sem instalar nada nela)
+- [ ] Monitor de retorno (stage display) para músicos e pregador — uma
+      **terceira saída** do motor de apresentação, distinta da tela da
+      congregação: tema e layout próprios, prévia do próximo slide, contagem
+      de slides, e comentários (cifra, nota) visíveis só ali, nunca no telão
+- [ ] Metadados de música para quem toca: tom (key) e BPM
+- [ ] Relatório de músicas executadas, filtrável por culto — consulta sobre o
+      histórico de uso que já existe desde a Fase 1
+- [ ] Utilitário para mesclar músicas duplicadas na biblioteca
+- [ ] Sub-itens colapsáveis e campo de descrição na ordem do culto
+
+Integrações externas — superfície de extensão para o ecossistema de produção
+ao vivo que já cresce ao redor de igrejas (identificado no comparativo com o
+Holyrics: OBS Studio, VLC, apps de click-track como o Playback da MultiTracks):
+
+- [ ] Servidor de API com token de acesso, além do WebSocket da Fase 3
+- [ ] Hook de script customizável para reagir a eventos do motor
+- [ ] Troca de cena no OBS Studio disparada pelo que está sendo projetado
 
 ---
 

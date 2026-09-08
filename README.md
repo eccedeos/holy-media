@@ -112,6 +112,7 @@ A estrutura cresce por necessidade, não por antecipação: `local-server`,
 - [Presentation Engine](docs/presentation-engine.md)
 - [Ordem do culto](docs/service-order.md)
 - [Roadmap por fases](docs/roadmap.md)
+- [Comparativo com o Holyrics](docs/holyrics-comparison.md)
 - [Plano de implementação](docs/implementation-plan.md)
 - [Orçamento de performance](docs/performance.md)
 - [Guia de desenvolvimento](docs/development.md)
