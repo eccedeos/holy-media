@@ -8,7 +8,7 @@
 //! comportamento que o operador vai exercitar num culto -- incluindo os casos
 //! que so aparecem sob pressao, como avancar slide com a tela preta.
 
-use super::model::{Output, Presentation, PresentationState};
+use super::model::{Output, Presentation, PresentationState, SlideKind};
 
 /// Estado da projecao.
 #[derive(Debug, Default)]
@@ -109,8 +109,13 @@ impl PresentationEngine {
             Output::Black
         } else {
             match current {
-                Some(slide) => Output::Slide {
-                    content: slide.content.clone(),
+                Some(slide) => match slide.kind {
+                    SlideKind::Text => Output::Slide {
+                        content: slide.content.clone(),
+                    },
+                    SlideKind::Qr => Output::Qr {
+                        content: slide.content.clone(),
+                    },
                 },
                 None => Output::Idle,
             }

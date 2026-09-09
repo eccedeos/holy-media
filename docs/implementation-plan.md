@@ -428,12 +428,71 @@ para uma apresentação de um único versículo.
 | clippy / eslint / tsc / prettier                           | limpos       |
 | Bundle JS                                                  | 82,7 kB gzip |
 
+## Fase 1, passo 7 — Fundo, texto avulso e QR Code
+
+**Entregue:**
+
+- Fundo da projeção (cor sólida, gradiente, imagem), configurável na coluna
+  do operador e aplicado atrás de qualquer conteúdo no ar — música, Bíblia,
+  texto avulso ou QR Code. Uma linha só no banco (`background_settings`);
+  trocar de aba já aplica, sem botão "Salvar" separado, no mesmo padrão da
+  escolha de monitor.
+- Texto avulso: um bloco digitado na hora (aviso, oração), dividido em
+  slides pela mesma regra do cadastro de música (linha em branco separa
+  slide). Sem persistência de propósito — é o equivalente de um bilhete
+  escrito na hora, não uma biblioteca.
+- QR Code: payload de texto (URL, chave PIX) virando um slide com prévia
+  antes de apresentar. O núcleo só carrega o payload; quem desenha o código
+  é a tela de projeção (`qrcode-generator`, ~10 kB gzip), nunca o Rust — a
+  mesma fronteira já usada para não deixar o motor conhecer domínio.
+- `Output` ganhou um quarto formato de exibição (`Qr`, ao lado de
+  `Idle`/`Black`/`Slide`); o motor continua sem saber o que é um QR Code, só
+  que existe um formato de conteúdo além de texto. Detalhes e o raciocínio
+  completo de cada decisão em [`docs/background.md`](background.md).
+
+**Decisão de arquitetura: a imagem de fundo mora no banco (base64), nunca
+em disco.** Servir por caminho de arquivo abriria uma superfície de
+permissão nova do Tauri v2 (escopo de asset, capability por diretório) só
+para uma imagem — quando o IPC que toda outra tela já usa resolve o mesmo
+problema sem nenhuma configuração nova. O custo é ~33% de inflação de
+tamanho e um limite de 6 MB aplicado no núcleo.
+
+**Regressão verificada de propósito: tela preta continua preta com fundo
+configurado.** O fundo só aparece atrás de `Slide`/`Qr`; `idle` e `black`
+continuam pretos sólidos — senão o botão de emergência do operador perderia
+a função. Testado tanto no motor (`tela_preta_esconde_o_qr_code_tambem`)
+quanto rodando o app de verdade (abaixo).
+
+**Verificado rodando o aplicativo:** texto avulso digitado e apresentado,
+com o fundo trocado para gradiente **enquanto o texto estava no ar** — a
+prévia atualizou o fundo imediatamente, atrás do mesmo slide; tela preta
+aplicada por cima do gradiente, confirmando que o fundo não vaza durante o
+blackout; QR Code de um payload PIX fictício com prévia antes de apresentar,
+depois apresentado com o gradiente ainda atrás; fundo trocado para imagem
+via o diálogo nativo de arquivo (mesma automação por `xdotool` já usada na
+importação da Bíblia), com persistência confirmada por consulta direta ao
+`holy-media.db` (`kind='image'`, `image_data` com o data URL, os outros
+campos `NULL`); volta para "Cor" reaplicando preto solido de imediato.
+
+| Verificação                                               | Resultado    |
+| --------------------------------------------------------- | ------------ |
+| Texto avulso apresentado (app real)                       | ✅           |
+| Fundo trocado ao vivo (gradiente) com conteúdo no ar      | ✅           |
+| Tela preta não deixa o fundo vazar                        | ✅           |
+| QR Code com prévia, depois apresentado                    | ✅           |
+| Imagem de fundo via diálogo nativo, persistência no `.db` | ✅           |
+| `cargo test`                                              | 167 testes   |
+| `pnpm test` (Vitest)                                      | 154 testes   |
+| clippy / eslint / tsc / prettier                          | limpos       |
+| Bundle JS                                                 | 93,1 kB gzip |
+
 ## Próximo passo
 
-**Backgrounds e QR Code** — cor sólida, gradiente e imagem como fundo da
-projeção; slide de texto livre; slide de QR Code para PIX de ofertas. Com a
-Bíblia entregue, todo bloco de conteúdo previsto para o MVP já existe; o que
-falta na Fase 1 é o acabamento da projeção e o `KeyboardShortcutService`.
+**`KeyboardShortcutService`** — atalhos de teclado centralizados e
+configuráveis (avançar, voltar, tela preta), hoje espalhados por cada
+componente que os usa. É o último item pendente da Fase 1; todo bloco de
+conteúdo previsto para o MVP (músicas, Bíblia, ordem do culto, fundo, texto
+avulso, QR Code) já existe.
 
 ## Fase 1 — passos restantes
 
@@ -446,7 +505,7 @@ Ordem de execução, escolhida para que cada passo seja demonstrável sozinho:
 5. ~~**Segunda tela**~~ — feito.
 6. ~~**Bíblia**~~ — feito.
 7. ~~**Ordem do culto**~~ — feito.
-8. **Backgrounds e QR Code**.
+8. ~~**Backgrounds e QR Code**~~ — feito.
 9. **`KeyboardShortcutService`** — atalhos num só lugar, configuráveis.
 
 O passo 4 vem antes do 5 de propósito: o motor precisa estar testado e correto

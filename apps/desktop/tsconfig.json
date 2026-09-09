@@ -3,6 +3,12 @@
   "compilerOptions": {
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
+    // So' o app desktop, nao o pacote de tipos compartilhado: precisa disto
+    // para importar `qrcode-generator` (CommonJS, `export =`) como um
+    // default import de verdade em vez de um namespace -- sem isto, o
+    // Rollup gera "Cannot call a namespace" porque um namespace ES nunca e'
+    // chamavel de fato.
+    "esModuleInterop": true,
     "types": ["node", "vite/client", "vitest/globals", "@testing-library/jest-dom"],
     "noEmit": true,
     "baseUrl": ".",

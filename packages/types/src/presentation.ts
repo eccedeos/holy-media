@@ -13,6 +13,12 @@ export interface PresentationSlide {
 }
 
 /**
+ * Entrada de `presentation_present_text`: um bloco de texto avulso, ja
+ * dividido em slides pela interface (mesma regra do editor de letras).
+ */
+export type PresentationSlideInput = PresentationSlide;
+
+/**
  * O que a segunda tela exibe neste instante.
  *
  * Uniao discriminada por `kind`: a janela de projecao faz um `switch` sobre ele
@@ -23,8 +29,11 @@ export type PresentationOutput =
   | { readonly kind: 'idle' }
   /** Tela preta pedida pelo operador. */
   | { readonly kind: 'black' }
-  /** Conteudo no ar. */
-  | { readonly kind: 'slide'; readonly content: string };
+  /** Conteudo no ar, para projetar como texto. */
+  | { readonly kind: 'slide'; readonly content: string }
+  /** Conteudo no ar, para desenhar como QR Code. `content` e' o payload
+   * (URL, texto de PIX) -- quem desenha o codigo e' a tela, nunca o nucleo. */
+  | { readonly kind: 'qr'; readonly content: string };
 
 /** Retrato do motor, recebido pelo Control Room e pela segunda tela. */
 export interface PresentationState {

@@ -47,9 +47,9 @@ apenas este software.**
 - [x] Presentation Engine (lógica pura, 23 testes)
 - [x] Controle da projeção no Control Room: apresentar, avançar, voltar, tela preta
 - [x] Segunda tela: janela dedicada, escolha de monitor, tela cheia, sem cursor
-- [ ] Backgrounds: cor sólida, gradiente e imagem
+- [x] Backgrounds: cor sólida, gradiente e imagem
 - [x] Ordem do culto: adicionar, remover, reordenar, duplicar, salvar, apresentar
-- [ ] Slide de texto livre e slide de QR Code (para PIX de ofertas)
+- [x] Slide de texto livre e slide de QR Code (para PIX de ofertas)
 - [ ] `KeyboardShortcutService` centralizado
 
 ---

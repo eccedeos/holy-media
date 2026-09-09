@@ -4,6 +4,21 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Como o `content` de um slide deve aparecer na tela.
+///
+/// Isto **nao** e' o motor conhecendo musica, Biblia ou QR Code -- e' o
+/// motor conhecendo *formas* de exibir texto, do mesmo jeito que ja distingue
+/// `Idle`/`Black`/`Slide` em `Output`. `Qr` existe porque um payload de PIX
+/// nao deve virar texto gigante na tela: ele precisa ser desenhado como
+/// codigo, e so a camada de renderizacao (fora do motor) sabe fazer isso.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum SlideKind {
+    #[default]
+    Text,
+    Qr,
+}
+
 /// Um slide ja resolvido, pronto para projetar.
 ///
 /// O motor recebe isto e nao sabe de onde veio: musica, versiculo, texto livre
@@ -16,6 +31,28 @@ pub struct PresentationSlide {
     pub label: String,
     /// O que a congregacao le.
     pub content: String,
+    #[serde(default)]
+    pub kind: SlideKind,
+}
+
+impl PresentationSlide {
+    pub fn new(label: impl Into<String>, content: impl Into<String>) -> Self {
+        Self {
+            label: label.into(),
+            content: content.into(),
+            kind: SlideKind::Text,
+        }
+    }
+
+    /// Um slide cujo `content` e' o payload a codificar como QR Code, nao
+    /// texto a projetar literalmente.
+    pub fn new_qr(label: impl Into<String>, content: impl Into<String>) -> Self {
+        Self {
+            label: label.into(),
+            content: content.into(),
+            kind: SlideKind::Qr,
+        }
+    }
 }
 
 /// Sequencia carregada no motor.
@@ -41,8 +78,12 @@ pub enum Output {
     Idle,
     /// Tela preta deliberada, pedida pelo operador.
     Black,
-    /// Conteudo no ar.
+    /// Conteudo no ar, para projetar como texto.
     Slide { content: String },
+    /// Conteudo no ar, para desenhar como QR Code. `content` e' o payload
+    /// (URL, texto de PIX), nunca o desenho -- quem sabe transformar payload
+    /// em imagem e' a tela, nao o motor.
+    Qr { content: String },
 }
 
 /// Retrato completo do motor, enviado ao Control Room e a segunda tela.

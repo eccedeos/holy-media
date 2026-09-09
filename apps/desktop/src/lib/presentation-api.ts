@@ -1,4 +1,4 @@
-import type { PresentationState } from '@holy-media/types';
+import type { PresentationSlideInput, PresentationState } from '@holy-media/types';
 import { PRESENTATION_STATE_EVENT } from '@holy-media/types';
 import { invokeCommand, isTauriAvailable } from './ipc';
 
@@ -27,6 +27,16 @@ export function presentBibleReference(
     translationId,
     reference,
   });
+}
+
+/** Coloca um texto avulso no ar. `slides` ja vem dividido em blocos. */
+export function presentText(slides: readonly PresentationSlideInput[]): Promise<PresentationState> {
+  return invokeCommand<PresentationState>('presentation_present_text', { slides });
+}
+
+/** Coloca um QR Code no ar -- tipicamente uma chave PIX. */
+export function presentQr(title: string, payload: string): Promise<PresentationState> {
+  return invokeCommand<PresentationState>('presentation_present_qr', { title, payload });
 }
 
 export function presentationNext(): Promise<PresentationState> {

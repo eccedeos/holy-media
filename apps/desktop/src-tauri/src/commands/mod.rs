@@ -5,6 +5,7 @@
 //! conversao.
 
 pub mod app;
+pub mod background;
 pub mod bible;
 pub mod display;
 pub mod presentation;

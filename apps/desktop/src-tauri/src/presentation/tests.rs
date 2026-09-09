@@ -9,10 +9,7 @@ use super::model::{Output, Presentation, PresentationSlide};
 use super::PresentationEngine;
 
 fn slide(label: &str, content: &str) -> PresentationSlide {
-    PresentationSlide {
-        label: label.to_owned(),
-        content: content.to_owned(),
-    }
+    PresentationSlide::new(label, content)
 }
 
 /// Musica de quatro slides, como uma de verdade.
@@ -338,6 +335,36 @@ fn os_estados_de_saida_tem_discriminante_proprio() {
     engine.toggle_blackout();
     let black = serde_json::to_value(engine.state()).expect("serializa");
     assert_eq!(black["output"]["kind"], "black");
+}
+
+#[test]
+fn slide_de_qr_code_projeta_como_qr_nao_como_texto() {
+    let mut engine = PresentationEngine::new();
+    engine.load(Presentation {
+        source_id: "qr-1".to_owned(),
+        title: "PIX".to_owned(),
+        slides: vec![PresentationSlide::new_qr("PIX", "00020126...")],
+    });
+
+    assert_eq!(
+        engine.state().output,
+        Output::Qr {
+            content: "00020126...".to_owned()
+        }
+    );
+}
+
+#[test]
+fn tela_preta_esconde_o_qr_code_tambem() {
+    let mut engine = PresentationEngine::new();
+    engine.load(Presentation {
+        source_id: "qr-1".to_owned(),
+        title: "PIX".to_owned(),
+        slides: vec![PresentationSlide::new_qr("PIX", "00020126...")],
+    });
+
+    engine.toggle_blackout();
+    assert_eq!(engine.state().output, Output::Black);
 }
 
 #[test]

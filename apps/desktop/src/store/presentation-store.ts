@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { AppError, PresentationState } from '@holy-media/types';
+import type { AppError, PresentationSlideInput, PresentationState } from '@holy-media/types';
 import { createAppError, describeUnknown, isAppError } from '@/lib/ipc';
 import * as api from '@/lib/presentation-api';
 import { createLogger } from '@/lib/logger';
@@ -36,6 +36,8 @@ interface PresentationStoreState {
   connect: () => Promise<() => void>;
   present: (songId: string) => Promise<void>;
   presentBible: (translationId: string, reference: string) => Promise<void>;
+  presentText: (slides: readonly PresentationSlideInput[]) => Promise<void>;
+  presentQr: (title: string, payload: string) => Promise<void>;
   next: () => Promise<void>;
   previous: () => Promise<void>;
   first: () => Promise<void>;
@@ -93,6 +95,8 @@ export const usePresentationStore = create<PresentationStoreState>((set) => {
     present: (songId) => run(() => api.presentSong(songId), 'apresentar'),
     presentBible: (translationId, reference) =>
       run(() => api.presentBibleReference(translationId, reference), 'apresentar biblia'),
+    presentText: (slides) => run(() => api.presentText(slides), 'apresentar texto'),
+    presentQr: (title, payload) => run(() => api.presentQr(title, payload), 'apresentar qr code'),
     next: () => run(api.presentationNext, 'proximo'),
     previous: () => run(api.presentationPrevious, 'anterior'),
     first: () => run(api.presentationFirst, 'primeiro'),

@@ -71,6 +71,31 @@ describe('comandos', () => {
     expect(state.label).toBe('Verso 2');
   });
 
+  it('apresenta texto avulso passando os slides ja divididos', async () => {
+    vi.mocked(api.presentText).mockResolvedValue(
+      estado({ sourceId: 'text:1', title: 'Texto', label: '', total: 1 }),
+    );
+
+    await usePresentationStore.getState().presentText([{ label: '', content: 'Aviso' }]);
+
+    expect(api.presentText).toHaveBeenCalledWith([{ label: '', content: 'Aviso' }]);
+    expect(usePresentationStore.getState().state.title).toBe('Texto');
+  });
+
+  it('apresenta um QR Code', async () => {
+    vi.mocked(api.presentQr).mockResolvedValue(
+      estado({ sourceId: 'qr:1', title: 'PIX', output: { kind: 'qr', content: '00020126' } }),
+    );
+
+    await usePresentationStore.getState().presentQr('PIX', '00020126');
+
+    expect(api.presentQr).toHaveBeenCalledWith('PIX', '00020126');
+    expect(usePresentationStore.getState().state.output).toEqual({
+      kind: 'qr',
+      content: '00020126',
+    });
+  });
+
   it('guarda o erro do nucleo sem apagar o que estava no ar', async () => {
     vi.mocked(api.presentSong).mockResolvedValue(estado());
     await usePresentationStore.getState().present('musica-1');

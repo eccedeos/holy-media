@@ -4,6 +4,7 @@
 //! expor os comandos de musicas. O Presentation Engine e a segunda tela entram
 //! nos proximos passos da Fase 1, cada um em seu proprio modulo.
 
+mod background;
 mod bible;
 mod commands;
 mod db;
@@ -86,6 +87,8 @@ pub fn run() {
             commands::presentation::presentation_toggle_blackout,
             commands::presentation::presentation_clear,
             commands::presentation::presentation_present_bible,
+            commands::presentation::presentation_present_text,
+            commands::presentation::presentation_present_qr,
             commands::bible::bible_list_translations,
             commands::bible::bible_import_translation,
             commands::bible::bible_delete_translation,
@@ -105,6 +108,8 @@ pub fn run() {
             commands::services::services_remove_item,
             commands::services::services_duplicate_item,
             commands::services::services_move_item,
+            commands::background::background_get,
+            commands::background::background_set,
         ])
         .run(tauri::generate_context!())
         .expect("falha ao iniciar a aplicacao Tauri");
