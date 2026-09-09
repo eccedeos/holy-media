@@ -13,6 +13,7 @@
  */
 
 export * from './app.js';
+export * from './bible.js';
 export * from './display.js';
 export * from './errors.js';
 export * from './presentation.js';

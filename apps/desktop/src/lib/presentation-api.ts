@@ -18,6 +18,17 @@ export function presentSong(songId: string): Promise<PresentationState> {
   return invokeCommand<PresentationState>('presentation_present_song', { songId });
 }
 
+/** Coloca uma referencia biblica no ar ("João 3:16", "Salmos 23"). */
+export function presentBibleReference(
+  translationId: string,
+  reference: string,
+): Promise<PresentationState> {
+  return invokeCommand<PresentationState>('presentation_present_bible', {
+    translationId,
+    reference,
+  });
+}
+
 export function presentationNext(): Promise<PresentationState> {
   return invokeCommand<PresentationState>('presentation_next');
 }

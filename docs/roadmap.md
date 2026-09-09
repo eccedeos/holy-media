@@ -42,8 +42,8 @@ apenas este software.**
 - [x] Formulário de cadastro e edição (letra em texto; linha em branco separa slides)
 - [x] Exclusão com confirmação
 - [x] Músicas de exemplo, oferecidas na biblioteca vazia
-- [ ] Módulo de Bíblia: tradução, livro, capítulo, versículo
-- [ ] Busca bíblica por palavra e por referência
+- [x] Módulo de Bíblia: tradução, livro, capítulo, versículo
+- [x] Busca bíblica por palavra e por referência
 - [x] Presentation Engine (lógica pura, 23 testes)
 - [x] Controle da projeção no Control Room: apresentar, avançar, voltar, tela preta
 - [x] Segunda tela: janela dedicada, escolha de monitor, tela cheia, sem cursor

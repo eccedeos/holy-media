@@ -9,10 +9,12 @@ um culto.
 
 > **Estado atual: Fase 1 em andamento.** Já dá para cadastrar músicas, buscar
 > por título, artista, letra ou tag (11 ms numa biblioteca de 5000, ignorando
-> acentos), montar uma **ordem do culto** (adicionar, reordenar, duplicar,
-> remover) e **projetar de verdade**: escolher o monitor, abrir a tela cheia no
-> projetor, apresentar direto da ordem do culto, avançar e voltar slides, tela
-> preta. Faltam Bíblia e backgrounds. Veja [docs/roadmap.md](docs/roadmap.md).
+> acentos), importar uma **tradução da Bíblia** e buscar por palavra ou por
+> referência ("João 3:16"), montar uma **ordem do culto** (adicionar,
+> reordenar, duplicar, remover) e **projetar de verdade**: escolher o monitor,
+> abrir a tela cheia no projetor, apresentar direto da ordem do culto, avançar
+> e voltar slides, tela preta. Faltam backgrounds e QR Code. Veja
+> [docs/roadmap.md](docs/roadmap.md).
 
 ## Por que Tauri e não Electron
 
@@ -110,6 +112,7 @@ A estrutura cresce por necessidade, não por antecipação: `local-server`,
 - [Arquitetura](docs/architecture.md)
 - [Banco de dados e busca](docs/database.md)
 - [Presentation Engine](docs/presentation-engine.md)
+- [Bíblia](docs/bible.md)
 - [Ordem do culto](docs/service-order.md)
 - [Roadmap por fases](docs/roadmap.md)
 - [Comparativo com o Holyrics](docs/holyrics-comparison.md)

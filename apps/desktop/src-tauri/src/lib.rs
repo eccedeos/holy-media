@@ -4,10 +4,12 @@
 //! expor os comandos de musicas. O Presentation Engine e a segunda tela entram
 //! nos proximos passos da Fase 1, cada um em seu proprio modulo.
 
+mod bible;
 mod commands;
 mod db;
 mod display;
 mod error;
+mod fts;
 mod presentation;
 mod services;
 mod songs;
@@ -83,6 +85,14 @@ pub fn run() {
             commands::presentation::presentation_go_to,
             commands::presentation::presentation_toggle_blackout,
             commands::presentation::presentation_clear,
+            commands::presentation::presentation_present_bible,
+            commands::bible::bible_list_translations,
+            commands::bible::bible_import_translation,
+            commands::bible::bible_delete_translation,
+            commands::bible::bible_list_books,
+            commands::bible::bible_get_chapter,
+            commands::bible::bible_search,
+            commands::bible::bible_resolve_reference,
             commands::display::display_state,
             commands::display::display_open,
             commands::display::display_close,

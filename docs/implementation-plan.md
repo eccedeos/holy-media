@@ -364,11 +364,76 @@ na lista — mudar a ordem não pode perder de vista o que está no ar).
 | clippy / eslint / tsc / prettier           | limpos                        |
 | Bundle JS                                  | 80,5 kB gzip                  |
 
+## Fase 1, passo 6 — Bíblia
+
+**Entregue:**
+
+- Domínio `bible`: tradução, livro, capítulo, versículo, com esquema próprio
+  (`bible_translations` → `bible_books` → `bible_verses`), sem tabela de
+  capítulo — capítulo é só um agrupamento, sem metadado próprio.
+- Importação por arquivo `.json` (formato documentado em
+  [`docs/bible.md`](bible.md)), validada por completo antes de qualquer
+  escrita no banco; sigla duplicada rejeitada com mensagem amigável.
+- Busca por palavra via FTS5 (`bible_verses_fts`), reusando a mesma lógica de
+  `build_match_query` já usada para músicas — movida para um módulo
+  compartilhado (`fts.rs`) em vez de duplicada.
+- Busca por referência (`João 3:16`, `1 João 3:16-18`, `Salmos 23`), com
+  resolução do livro por sigla ou nome, exato ou por prefixo, sem diferenciar
+  acento ou caixa.
+- Uma caixa de busca só na interface: tenta resolver como referência primeiro,
+  cai para busca por palavra se isso falhar — sem seletor de modo.
+- Apresentação: cada versículo vira um slide, resolvido de novo a partir do
+  banco a cada apresentação (nunca a partir do texto que a interface tem em
+  mãos) — a mesma regra de integridade já aplicada às músicas.
+
+**Decisão deliberada: nenhuma tradução vem com o instalador.** O briefing
+original pedia uma tradução de domínio público já embutida. Duas razões
+pesaram contra: direitos autorais (a maioria das traduções em português é
+protegida; "domínio público" de verdade não é algo para decidir sozinho
+dentro do código de um projeto de terceiros) e fidelidade do texto (não há
+aqui uma forma verificada de baixar e validar um arquivo de tradução antes de
+embuti-lo — reproduzir Escritura de memória arrisca errar uma palavra, um
+problema mais grave que um typo numa letra). O módulo entrega o mecanismo
+inteiro; cada igreja importa a tradução que tem o direito de usar. O
+raciocínio completo está em [`docs/bible.md`](bible.md).
+
+**O bug que só apareceu rodando o script de migration.** Um `cargo fmt`
+anterior já tinha reformatado o array `MIGRATIONS` para várias linhas, e um
+`str.replace()` para acrescentar a migration 3 não encontrou mais o texto
+antigo — o script terminou sem erro, mas não alterou o arquivo. Sintoma: os
+16 testes novos do repositório da Bíblia falhavam com
+`no such table: bible_translations`, mesmo com a migration escrita e correta.
+Corrigido lendo o conteúdo atual do arquivo antes de editar, em vez de confiar
+num replace "silencioso". Lição que vale para qualquer edição de arquivo por
+script: verificar o resultado, não só o código de saída.
+
+**Verificado rodando o aplicativo:** importação de um arquivo `.json` com dois
+livros fictícios via o diálogo nativo de arquivo (automatizado sob Xvfb com
+`xdotool`, atalho `ctrl+l` do GTK para digitar o caminho); confirmado também
+por consulta direta ao `holy-media.db` da instalação que os livros e a
+tradução foram persistidos, não só exibidos na tela. Busca por referência
+(`Lex 1:2`) resolvendo e destacando o versículo certo; apresentação mostrando
+só o texto do versículo na prévia e no rodapé (`Lex 1:2 · 1 de 1`); botões de
+avançar/voltar corretamente inertes (`canGoNext`/`canGoPrevious` em `false`)
+para uma apresentação de um único versículo.
+
+| Verificação                                                | Resultado    |
+| ---------------------------------------------------------- | ------------ |
+| Importar tradução via diálogo nativo de arquivo (app real) | ✅           |
+| Persistência confirmada por consulta direta ao `.db`       | ✅           |
+| Busca por referência resolve e apresenta o versículo certo | ✅           |
+| Navegação inerte no limite (1 de 1)                        | ✅           |
+| `cargo test`                                               | 145 testes   |
+| `pnpm test` (Vitest)                                       | 152 testes   |
+| clippy / eslint / tsc / prettier                           | limpos       |
+| Bundle JS                                                  | 82,7 kB gzip |
+
 ## Próximo passo
 
-**Bíblia** — tradução, livro, capítulo, versículo, com busca. É o último bloco
-de conteúdo que falta para o critério da Fase 1: conduzir um culto inteiro sem
-sair do software.
+**Backgrounds e QR Code** — cor sólida, gradiente e imagem como fundo da
+projeção; slide de texto livre; slide de QR Code para PIX de ofertas. Com a
+Bíblia entregue, todo bloco de conteúdo previsto para o MVP já existe; o que
+falta na Fase 1 é o acabamento da projeção e o `KeyboardShortcutService`.
 
 ## Fase 1 — passos restantes
 
@@ -377,10 +442,10 @@ Ordem de execução, escolhida para que cada passo seja demonstrável sozinho:
 1. ~~**SQLite no núcleo Rust**~~ — feito.
 2. ~~**Domínio de músicas**~~ — feito.
 3. ~~**Busca com FTS5**~~ — feito, 11 ms em 5000 músicas.
-4. **Presentation Engine** — lógica pura, coberta por testes antes da UI.
-5. **Segunda tela** — janela dedicada, escolha de monitor, fullscreen, preto.
-6. **Bíblia** — importação de uma tradução em domínio público, busca, navegação.
-7. **Ordem do culto** — playlist persistida.
+4. ~~**Presentation Engine**~~ — feito.
+5. ~~**Segunda tela**~~ — feito.
+6. ~~**Bíblia**~~ — feito.
+7. ~~**Ordem do culto**~~ — feito.
 8. **Backgrounds e QR Code**.
 9. **`KeyboardShortcutService`** — atalhos num só lugar, configuráveis.
 

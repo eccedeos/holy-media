@@ -12,6 +12,7 @@
 
 use tauri::{AppHandle, Emitter, State};
 
+use crate::bible::{repository as bible_repository, BibleReferenceResult};
 use crate::error::AppResult;
 use crate::presentation::{Presentation, PresentationSlide, PresentationState};
 use crate::songs::{repository, Song};
@@ -31,6 +32,32 @@ fn from_song(song: &Song) -> Presentation {
             .map(|slide| PresentationSlide {
                 label: slide.label.clone(),
                 content: slide.content.clone(),
+            })
+            .collect(),
+    }
+}
+
+/// Converte um resultado de referencia biblica em sequencia projetavel: um
+/// slide por versiculo, para que o operador possa avancar versiculo a
+/// versiculo com os mesmos comandos de navegacao das musicas.
+fn from_bible_reference(result: &BibleReferenceResult) -> Presentation {
+    Presentation {
+        source_id: format!(
+            "bible:{}:{}:{}",
+            result.book.id,
+            result.chapter,
+            result.verses.first().map_or(0, |verse| verse.verse)
+        ),
+        title: format!("{} {}", result.book.name, result.chapter),
+        slides: result
+            .verses
+            .iter()
+            .map(|verse| PresentationSlide {
+                label: format!(
+                    "{} {}:{}",
+                    result.book.abbreviation, result.chapter, verse.verse
+                ),
+                content: verse.text.clone(),
             })
             .collect(),
     }
@@ -61,6 +88,29 @@ pub fn presentation_present_song(
     repository::register_usage(&state.db, &song_id)?;
 
     let presentation = from_song(&song);
+    let novo = state.with_presentation(|engine| {
+        engine.load(presentation);
+        engine.state()
+    });
+
+    broadcast(&app, novo)
+}
+
+/// Coloca uma referencia biblica no ar ("João 3:16", "Salmos 23").
+///
+/// Resolve a referencia do zero a partir do banco, em vez de aceitar o texto
+/// do versiculo vindo da interface: quem decide o que e' Escritura e' o
+/// banco, nunca um payload que a interface poderia ter alterado.
+#[tauri::command]
+pub fn presentation_present_bible(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    translation_id: String,
+    reference: String,
+) -> AppResult<PresentationState> {
+    let result = bible_repository::resolve_reference(&state.db, &translation_id, &reference)?;
+    let presentation = from_bible_reference(&result);
+
     let novo = state.with_presentation(|engine| {
         engine.load(presentation);
         engine.state()

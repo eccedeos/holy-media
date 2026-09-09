@@ -7,9 +7,10 @@ use rusqlite::{params, Connection, OptionalExtension, Transaction};
 use uuid::Uuid;
 
 use super::model::{Song, SongInput, SongSlide, SongSummary};
-use super::{search, seed};
+use super::seed;
 use crate::db::{now_millis, Database};
 use crate::error::{AppError, AppResult};
+use crate::fts::build_match_query;
 
 /// Teto de resultados por busca.
 ///
@@ -173,7 +174,7 @@ pub fn seed_examples(db: &Database) -> AppResult<usize> {
 /// Consulta vazia devolve a biblioteca ordenada pela edicao mais recente --
 /// que e' o estado inicial util da tela, sem exigir um segundo comando.
 pub fn search(db: &Database, query: &str) -> AppResult<Vec<SongSummary>> {
-    db.with_connection(|connection| match search::build_match_query(query) {
+    db.with_connection(|connection| match build_match_query(query) {
         None => list_recent(connection),
         Some(expression) => search_indexed(connection, &expression),
     })

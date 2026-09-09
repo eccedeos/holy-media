@@ -1,5 +1,9 @@
 //! Traducao do que o operador digita para uma consulta FTS5.
 //!
+//! Compartilhado entre os dominios que tem busca por texto -- musicas e
+//! Biblia, e o proximo que precisar -- porque a seguranca desta funcao vale
+//! igual para todos e uma segunda copia poderia divergir da primeira.
+//!
 //! O texto digitado **nunca** e' concatenado direto no `MATCH`. A sintaxe do
 //! FTS5 tem operadores proprios (`AND`, `OR`, `NOT`, `NEAR`, aspas, parenteses,
 //! `*`, `^`, `:`) e um `MATCH` com sintaxe invalida nao devolve zero

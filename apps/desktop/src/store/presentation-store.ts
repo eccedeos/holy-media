@@ -35,6 +35,7 @@ interface PresentationStoreState {
   /** Busca o estado atual e passa a escutar as mudancas. */
   connect: () => Promise<() => void>;
   present: (songId: string) => Promise<void>;
+  presentBible: (translationId: string, reference: string) => Promise<void>;
   next: () => Promise<void>;
   previous: () => Promise<void>;
   first: () => Promise<void>;
@@ -90,6 +91,8 @@ export const usePresentationStore = create<PresentationStoreState>((set) => {
     },
 
     present: (songId) => run(() => api.presentSong(songId), 'apresentar'),
+    presentBible: (translationId, reference) =>
+      run(() => api.presentBibleReference(translationId, reference), 'apresentar biblia'),
     next: () => run(api.presentationNext, 'proximo'),
     previous: () => run(api.presentationPrevious, 'anterior'),
     first: () => run(api.presentationFirst, 'primeiro'),

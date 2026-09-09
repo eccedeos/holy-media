@@ -26,6 +26,11 @@ const MIGRATIONS: &[Migration] = &[
         name: "services",
         sql: include_str!("migrations/0002_services.sql"),
     },
+    Migration {
+        version: 3,
+        name: "bible",
+        sql: include_str!("migrations/0003_bible.sql"),
+    },
 ];
 
 struct Migration {
