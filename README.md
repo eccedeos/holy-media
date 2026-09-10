@@ -124,6 +124,9 @@ A estrutura cresce por necessidade, não por antecipação: `local-server`,
 - [Plano de implementação](docs/implementation-plan.md)
 - [Orçamento de performance](docs/performance.md)
 - [Guia de desenvolvimento](docs/development.md)
+- [Gerando os instaladores](docs/build-instaladores.md)
+- [Roteiro de teste real](docs/roteiro-teste-real.md)
+- [Guia rápido do operador](docs/guia-do-operador.md)
 - [Decisões arquiteturais (ADR)](docs/adr/)
 
 ## Licença

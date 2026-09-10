@@ -578,6 +578,11 @@ fazer que ninguém aqui pensou em testar. Bugs e ajustes encontrados nessa
 rodada entram como correções antes da Fase 2, não como desculpa para
 adiá-la.
 
+Roteiro em [`docs/roteiro-teste-real.md`](roteiro-teste-real.md); guia para
+quem for operar sem conhecer o código em
+[`docs/guia-do-operador.md`](guia-do-operador.md); como gerar o instalador
+para cada sistema em [`docs/build-instaladores.md`](build-instaladores.md).
+
 ## Riscos conhecidos
 
 | Risco                                               | Como estamos lidando                                          |
