@@ -27,7 +27,7 @@ Colocar o projeto de pé, sem nenhuma funcionalidade de produto.
 
 ---
 
-## Fase 1 — MVP: dar para fazer um culto inteiro 🚧 em andamento
+## Fase 1 — MVP: dar para fazer um culto inteiro ✅ concluída
 
 O critério de pronto é literal: **conseguir conduzir um culto completo usando
 apenas este software.**
@@ -50,7 +50,7 @@ apenas este software.**
 - [x] Backgrounds: cor sólida, gradiente e imagem
 - [x] Ordem do culto: adicionar, remover, reordenar, duplicar, salvar, apresentar
 - [x] Slide de texto livre e slide de QR Code (para PIX de ofertas)
-- [ ] `KeyboardShortcutService` centralizado
+- [x] `KeyboardShortcutService` centralizado
 
 ---
 

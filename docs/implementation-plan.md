@@ -486,17 +486,71 @@ campos `NULL`); volta para "Cor" reaplicando preto solido de imediato.
 | clippy / eslint / tsc / prettier                          | limpos       |
 | Bundle JS                                                 | 93,1 kB gzip |
 
-## Próximo passo
+## Fase 1, passo 8 — `KeyboardShortcutService`
 
-**`KeyboardShortcutService`** — atalhos de teclado centralizados e
-configuráveis (avançar, voltar, tela preta), hoje espalhados por cada
-componente que os usa. É o último item pendente da Fase 1; todo bloco de
-conteúdo previsto para o MVP (músicas, Bíblia, ordem do culto, fundo, texto
-avulso, QR Code) já existe.
+**Entregue:**
 
-## Fase 1 — passos restantes
+- `apps/desktop/src/lib/keyboard-shortcuts.ts`: mapa de teclas
+  (`DEFAULT_BINDINGS`) e a lógica pura que decide qual ação uma tecla
+  dispara (`matchAction`) — o único lugar do aplicativo que sabe qual tecla
+  faz o quê. Antes deste passo nenhum atalho existia; cada botão só
+  respondia a clique.
+- `use-keyboard-shortcuts.ts`: o único `addEventListener('keydown', ...)`
+  do aplicativo, montado uma vez em `App`. Funciona em qualquer aba de
+  conteúdo — a coluna do operador não muda com a aba aberta, e o atalho
+  também não.
+- Painel "Atalhos" na coluna do operador (fechado por padrão): mostra a
+  tecla de cada ação e deixa reatribuir com um passo de captura
+  ("pressione uma tecla..."), recusando uma tecla já usada por outro
+  atalho em vez de deixar dois atalhos silenciosamente na mesma tecla.
+- Seis ações: próximo/anterior/primeiro/último slide, tela preta, tirar do
+  ar — com teclas padrão familiares a quem já usou qualquer apresentador de
+  slides (setas, `Home`/`End`, `B` de "blackout", `Escape`).
 
-Ordem de execução, escolhida para que cada passo seja demonstrável sozinho:
+**Decisão deliberada: a ligação de tecla ainda não é persistida.** Mesma
+situação já registrada para o monitor de projeção escolhido
+(`SelectedMonitor`, "não é persistido ainda: a tabela de configurações
+entra na Fase 4"). Uma tabela de configurações só para atalhos, antes da
+tabela de verdade, duplicaria o problema em vez de resolvê-lo — o operador
+reconfigura ao abrir o aplicativo, se quiser, e o padrão já cobre o uso
+comum sem nenhum passo extra. Raciocínio completo em
+[`docs/keyboard-shortcuts.md`](keyboard-shortcuts.md).
+
+**A regra que importa mais que todas as outras: ignorar campo de texto.**
+Um atalho global só dispara fora de um `<input>`/`<textarea>`/`<select>`/
+`contenteditable` — sem isso, digitar espaço na busca avançaria o slide, e
+"b" no título de uma música ligaria a tela preta. Também ignora Ctrl/Alt/
+Meta, para não roubar uma combinação do navegador ou do sistema
+operacional.
+
+**Verificado rodando o aplicativo:** seta direita avançou o slide de uma
+música de 4 slides no ar; "B" ligou a tela preta; digitar "b b b" na busca
+da biblioteca (com a mesma música ainda no ar) não ligou a tela preta
+nenhuma vez — a regra de ignorar campo de texto se sustenta com o app real,
+não só em teste unitário; painel de atalhos aberto, reatribuição de
+"Próximo slide" para "n" capturada e aplicada, seta direita parou de
+funcionar e "n" passou a avançar o slide; tentar reatribuir "Slide
+anterior" também para "n" foi recusado com a mensagem `"n" já está em uso.`;
+"Restaurar padrão" devolveu a seta; "Escape" tirou a música do ar.
+
+| Verificação                                     | Resultado    |
+| ----------------------------------------------- | ------------ |
+| Seta direita avança o slide (app real)          | ✅           |
+| "B" liga a tela preta                           | ✅           |
+| Digitar "b" na busca não liga a tela preta      | ✅           |
+| Reatribuir uma tecla e o atalho passar a usá-la | ✅           |
+| Tecla em conflito é recusada com mensagem       | ✅           |
+| "Restaurar padrão" volta a tecla original       | ✅           |
+| "Escape" tira do ar                             | ✅           |
+| `cargo test`                                    | 167 testes   |
+| `pnpm test` (Vitest)                            | 191 testes   |
+| clippy / eslint / tsc / prettier                | limpos       |
+| Bundle JS                                       | 94,1 kB gzip |
+
+## Fase 1 — concluída
+
+Todos os passos previstos para o MVP foram entregues e verificados rodando o
+aplicativo, não só em teste automatizado:
 
 1. ~~**SQLite no núcleo Rust**~~ — feito.
 2. ~~**Domínio de músicas**~~ — feito.
@@ -505,11 +559,24 @@ Ordem de execução, escolhida para que cada passo seja demonstrável sozinho:
 5. ~~**Segunda tela**~~ — feito.
 6. ~~**Bíblia**~~ — feito.
 7. ~~**Ordem do culto**~~ — feito.
-8. ~~**Backgrounds e QR Code**~~ — feito.
-9. **`KeyboardShortcutService`** — atalhos num só lugar, configuráveis.
+8. ~~**Backgrounds, texto avulso e QR Code**~~ — feito.
+9. ~~**`KeyboardShortcutService`**~~ — feito.
 
-O passo 4 vem antes do 5 de propósito: o motor precisa estar testado e correto
-antes de existir uma tela para escondê-lo.
+O passo 4 veio antes do 5 de propósito: o motor precisava estar testado e
+correto antes de existir uma tela para escondê-lo.
+
+## Próximo passo
+
+**Rodada de teste real**, antes da Fase 2. O critério de pronto da Fase 1
+era literal — "conseguir conduzir um culto completo usando apenas este
+software" — e até aqui isso só foi verificado por quem escreveu o código,
+sob Xvfb, com dados de exemplo. Testar com um operador de verdade, numa
+máquina de verdade, num culto de verdade (ou o mais perto disso possível)
+é o que vai expor o que nenhuma bateria de testes automatizados alcança:
+usabilidade sob pressão, hardware desconhecido, e o que um operador tenta
+fazer que ninguém aqui pensou em testar. Bugs e ajustes encontrados nessa
+rodada entram como correções antes da Fase 2, não como desculpa para
+adiá-la.
 
 ## Riscos conhecidos
 

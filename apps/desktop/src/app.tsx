@@ -10,8 +10,10 @@ import { QrPanel } from '@/components/qr/qr-panel';
 import { PresentationControls } from '@/components/presentation/presentation-controls';
 import { DisplayPicker } from '@/components/presentation/display-picker';
 import { BackgroundSettings } from '@/components/presentation/background-settings';
+import { KeyboardShortcutsPanel } from '@/components/presentation/keyboard-shortcuts-panel';
 import { ServiceOrder } from '@/components/service/service-order';
 import { usePresentationStore } from '@/store/presentation-store';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { cn } from '@/lib/utils';
 
 type ContentTab = 'songs' | 'bible' | 'text' | 'qr';
@@ -40,6 +42,8 @@ export function App() {
   const loadAppInfo = useAppStore((state) => state.loadAppInfo);
   const connect = usePresentationStore((store) => store.connect);
   const [tab, setTab] = useState<ContentTab>('songs');
+
+  useKeyboardShortcuts();
 
   useEffect(() => {
     void loadAppInfo();
@@ -110,6 +114,7 @@ export function App() {
           <DisplayPicker />
           <BackgroundSettings />
           <PresentationControls />
+          <KeyboardShortcutsPanel />
           <ServiceOrder />
         </div>
       </main>
