@@ -2,15 +2,32 @@
 
 O Tauri empacota para o sistema operacional onde o build roda — não há
 build cruzado confiável de Linux para Windows/macOS sem um toolchain extra
-que este projeto não assume. Por isso:
+que este projeto não assume.
 
-- Os pacotes **Linux** (`.deb`, `.rpm`, `.AppImage`) já saem prontos deste
-  ambiente de desenvolvimento (que roda Ubuntu) — ver a seção abaixo.
-- O instalador **Windows** (`.msi`/`.exe`) precisa ser gerado numa máquina
-  Windows.
-- O instalador **macOS** (`.dmg`) precisa ser gerado num Mac.
+## Caminho padrão: GitHub Actions (recomendado)
 
-## Linux (já gerado)
+**Esta é a forma usada desde o primeiro teste do aplicativo, e a que deve
+seguir sendo usada.** O workflow `.github/workflows/build-desktop.yml`
+builda Windows e Linux sob demanda, num runner de verdade de cada sistema
+— sem exigir Rust, Node nem as Build Tools do Visual Studio na sua máquina.
+
+1. Na aba **Actions** do repositório no GitHub, abra "Build do aplicativo".
+2. **Run workflow**, escolha a branch, marque **"Gerar também o
+   instalador"** (senão só sai o executável solto, sem `.msi`/`.deb`).
+3. Espere o run terminar (o job do Windows compila o núcleo Rust do zero,
+   costuma levar 10-15 minutos) e baixe o artefato
+   `holy-media-windows-instalador` (ou `holy-media-linux-instalador`) na
+   página do run.
+
+Peça para o Claude disparar isso por você a qualquer momento — ele tem
+acesso à API do GitHub Actions neste repositório (ver `CLAUDE.md`).
+
+## Build local — só se o workflow não for uma opção
+
+As seções abaixo continuam valendo para quem quiser (ou precisar) compilar
+na própria máquina, mas não é o caminho padrão do projeto.
+
+### Linux (já gerado neste ambiente de desenvolvimento)
 
 ```
 apps/desktop/src-tauri/target/release/bundle/
@@ -27,7 +44,7 @@ apps/desktop/src-tauri/target/release/bundle/
   AppImage embutido — o binário do Holy Media em si continua pequeno (ver
   [`performance.md`](performance.md)).
 
-## Windows
+### Windows
 
 Requisitos (uma vez só, na máquina que vai gerar o instalador):
 
@@ -56,7 +73,7 @@ O instalador sai em
 `apps/desktop/src-tauri/target/release/bundle/msi/` (e/ou `nsis/`,
 dependendo do que o Tauri escolher gerar).
 
-## macOS
+### macOS
 
 Mesma ideia, com as ferramentas do macOS:
 
