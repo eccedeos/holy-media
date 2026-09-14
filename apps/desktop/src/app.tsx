@@ -35,6 +35,13 @@ const TAB_LABELS: Record<ContentTab, string> = {
  *
  * Texto avulso e QR Code nao tem nada para navegar na coluna da esquerda --
  * o formulario inteiro vive na coluna do meio, no lugar do detalhe.
+ *
+ * As quatro abas de conteudo ficam **sempre montadas**, so escondidas com
+ * `hidden` -- nunca um `{tab === 'x' && <X />}` que desmonta. Foi assim que
+ * um texto avulso digitado sumia ao trocar de aba e voltar: o componente
+ * (com seu proprio `useState`) era destruido e recriado do zero. `hidden`
+ * (propriedade do DOM, nao uma classe) tira o elemento do fluxo sem apagar
+ * o estado do React por baixo.
  */
 export function App() {
   const info = useAppStore((state) => state.info);
@@ -93,20 +100,32 @@ export function App() {
             ))}
           </div>
           <div className="min-h-0 flex-1">
-            {tab === 'songs' && <SongLibrary />}
-            {tab === 'bible' && <BibleNavigator />}
-            {(tab === 'text' || tab === 'qr') && (
+            <div hidden={tab !== 'songs'} className="h-full">
+              <SongLibrary />
+            </div>
+            <div hidden={tab !== 'bible'} className="h-full">
+              <BibleNavigator />
+            </div>
+            <div hidden={tab !== 'text' && tab !== 'qr'} className="h-full">
               <p className="p-3 text-xs text-content-muted">
                 Preencha o formulario na coluna do meio.
               </p>
-            )}
+            </div>
           </div>
         </div>
         <div className="min-h-0">
-          {tab === 'songs' && <SongPanel />}
-          {tab === 'bible' && <BibleVerses />}
-          {tab === 'text' && <FreeTextPanel />}
-          {tab === 'qr' && <QrPanel />}
+          <div hidden={tab !== 'songs'} className="h-full">
+            <SongPanel />
+          </div>
+          <div hidden={tab !== 'bible'} className="h-full">
+            <BibleVerses />
+          </div>
+          <div hidden={tab !== 'text'} className="h-full">
+            <FreeTextPanel />
+          </div>
+          <div hidden={tab !== 'qr'} className="h-full">
+            <QrPanel />
+          </div>
         </div>
         {/* Coluna do operador: previa e comandos ficam sempre visiveis, para
             que avancar slide nunca dependa de qual aba de conteudo esta aberta. */}
