@@ -100,6 +100,53 @@ texto e chama `JSON.parse` antes de mandar para o núcleo — um arquivo
 malformado é pego ali, com uma mensagem que aponta para este documento, sem
 gastar uma chamada IPC.
 
+### Formato "legado" também aceito
+
+Além do formato acima, a interface reconhece o formato mais comum entre os
+repositórios públicos de Bíblia em JSON — um array de livros, sem metadado
+da tradução como um todo:
+
+```json
+[
+  { "abbrev": "gn", "name": "Gênesis", "chapters": [["No princípio..."]] },
+  { "abbrev": "ex", "name": "Êxodo", "chapters": [["..."]] }
+]
+```
+
+É o formato usado por [`thiagobodruk/biblia`](https://github.com/thiagobodruk/biblia)
+e [`damarals/biblias`](https://github.com/damarals/biblias) (e a maioria dos
+forks): quem procurar "bíblia json" acaba esbarrando nele. A detecção e a
+conversão vivem em `lib/bible-import.ts`, inteiramente do lado da interface —
+o núcleo Rust continua validando só o formato nativo, o mesmo raciocínio já
+usado para `parseLyrics` (letra de música) e para o desenho do QR Code: a
+tradução de um formato externo para o formato do domínio é trabalho da
+interface, nunca do núcleo.
+
+Como esse formato não carrega sigla/nome/idioma da tradução, a interface pede
+os três num formulário pequeno antes de concluir a importação — só o operador
+sabe qual arquivo baixou.
+
+### Fontes verificadas de domínio público
+
+`damarals/biblias` marca explicitamente quais traduções são de domínio
+público (redistribuíveis livremente) e quais pertencem a uma editora
+(protegidas — o repositório é só um espelho técnico, os direitos do texto
+continuam sendo do detentor original):
+
+| Sigla     | Tradução               | Status                           |
+| --------- | ---------------------- | -------------------------------- |
+| `TB`      | Tradução Brasileira    | domínio público                  |
+| `BLIVRE`  | Bíblia Livre           | domínio público                  |
+| `ALM1911` | Almeida 1911           | domínio público                  |
+| outras    | ARA, ARC, NVI, NTLH... | protegidas — pertencem à editora |
+
+As três primeiras são uma fonte segura para testar o módulo sem entrar em
+zona cinzenta de direitos autorais (ex.: para o
+[roteiro de teste real](roteiro-teste-real.md)). As demais continuam
+utilizáveis — uma igreja pode importar a tradução que já usa — mas a
+responsabilidade de ter os direitos de uso é de quem importa, exatamente como
+antes: este projeto não distribui nenhuma delas.
+
 ## Referências e busca: uma caixa só
 
 A caixa de busca da Bíblia não distingue "busca por palavra" de "busca por

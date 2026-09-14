@@ -5,8 +5,19 @@ import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { createLogger } from '@/lib/logger';
+import {
+  fromLegacyFormat,
+  parseImportFile,
+  type LegacyBibleBook,
+  type TranslationMeta,
+} from '@/lib/bible-import';
 
 const log = createLogger('bible-import');
+
+const fieldClass =
+  'w-full rounded-md border border-line bg-surface-sunken ' +
+  'px-2 py-1 text-xs outline-none placeholder:text-content-muted ' +
+  'focus-visible:ring-2 focus-visible:ring-accent';
 
 /**
  * Coluna de navegacao da Biblia: escolha de traducao, importacao, lista de
@@ -14,7 +25,10 @@ const log = createLogger('bible-import');
  *
  * Este projeto nao distribui nenhuma traducao com o instalador -- ver
  * `docs/bible.md`. A unica forma de ter texto biblico aqui e' importar um
- * arquivo `.json` no formato documentado la.
+ * arquivo `.json`, em qualquer um dos dois formatos que `lib/bible-import.ts`
+ * reconhece: o nativo (documentado em `docs/bible.md`) ou o formato "legado"
+ * usado por varios repositorios publicos de Biblia em JSON -- nesse segundo
+ * caso, um formulario pede sigla/nome/idioma antes de concluir a importacao.
  */
 export function BibleNavigator() {
   const translations = useBibleStore((state) => state.translations);
@@ -36,6 +50,17 @@ export function BibleNavigator() {
   const debouncedText = useDebouncedValue(text);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Preenchido quando o arquivo importado segue o formato "legado" (array de
+  // livros, sem metadado da traducao) -- ver `lib/bible-import.ts`. Nesse
+  // caso a importacao fica pendente ate' o operador preencher sigla/nome/
+  // idioma no formulario abaixo.
+  const [pendingLegacy, setPendingLegacy] = useState<readonly LegacyBibleBook[] | null>(null);
+  const [legacyMeta, setLegacyMeta] = useState<TranslationMeta>({
+    abbreviation: '',
+    name: '',
+    language: 'pt-BR',
+  });
+
   useEffect(() => {
     void refresh();
   }, [refresh]);
@@ -55,9 +80,9 @@ export function BibleNavigator() {
 
     const reader = new FileReader();
     reader.onload = () => {
+      let parsed: unknown;
       try {
-        const parsed = JSON.parse(String(reader.result));
-        void importTranslation(parsed);
+        parsed = JSON.parse(String(reader.result));
       } catch (cause) {
         // JSON malformado nao e' um AppError do nucleo -- e' um problema no
         // proprio arquivo, detectado aqui antes de qualquer IPC.
@@ -68,9 +93,35 @@ export function BibleNavigator() {
             message: 'O arquivo nao e um JSON valido. Veja o formato em docs/bible.md.',
           },
         });
+        return;
+      }
+
+      const resultado = parseImportFile(parsed);
+      if (resultado.kind === 'native') {
+        void importTranslation(resultado.input);
+      } else if (resultado.kind === 'legacy') {
+        // Este formato (usado por varios repositorios publicos de Biblia em
+        // JSON) nao carrega sigla/nome/idioma da traducao -- so' o operador
+        // sabe qual arquivo baixou.
+        setPendingLegacy(resultado.books);
+        setLegacyMeta({ abbreviation: '', name: '', language: 'pt-BR' });
+      } else {
+        useBibleStore.setState({
+          error: {
+            code: 'INVALID_INPUT',
+            message: 'Formato nao reconhecido. Veja os formatos aceitos em docs/bible.md.',
+          },
+        });
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleConfirmLegacyImport = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (pendingLegacy === null) return;
+    void importTranslation(fromLegacyFormat(pendingLegacy, legacyMeta));
+    setPendingLegacy(null);
   };
 
   return (
@@ -91,6 +142,60 @@ export function BibleNavigator() {
             onChange={handleImportFile}
           />
         </div>
+
+        {pendingLegacy !== null && (
+          <form
+            onSubmit={handleConfirmLegacyImport}
+            aria-label="Identificar a traducao importada"
+            className="mb-2 flex flex-col gap-1.5 rounded-md border border-accent bg-surface-raised p-2"
+          >
+            <p className="text-xs text-content-muted">
+              Este arquivo não diz o nome da tradução ({pendingLegacy.length} livros encontrados) —
+              preencha para continuar.
+            </p>
+            <input
+              value={legacyMeta.abbreviation}
+              onChange={(event) =>
+                setLegacyMeta((meta) => ({ ...meta, abbreviation: event.target.value }))
+              }
+              placeholder="Sigla (ex.: NVI)"
+              aria-label="Sigla da tradução"
+              required
+              className={fieldClass}
+            />
+            <input
+              value={legacyMeta.name}
+              onChange={(event) => setLegacyMeta((meta) => ({ ...meta, name: event.target.value }))}
+              placeholder="Nome (ex.: Nova Versão Internacional)"
+              aria-label="Nome da tradução"
+              required
+              className={fieldClass}
+            />
+            <input
+              value={legacyMeta.language}
+              onChange={(event) =>
+                setLegacyMeta((meta) => ({ ...meta, language: event.target.value }))
+              }
+              placeholder="Idioma (ex.: pt-BR)"
+              aria-label="Idioma da tradução"
+              required
+              className={fieldClass}
+            />
+            <div className="flex gap-1.5">
+              <Button type="submit" size="sm" className="flex-1">
+                Concluir importação
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setPendingLegacy(null)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        )}
 
         {translations.length > 1 && (
           <select

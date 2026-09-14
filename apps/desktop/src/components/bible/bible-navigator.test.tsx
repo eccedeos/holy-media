@@ -153,4 +153,76 @@ describe('importacao', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('nao e um JSON valido');
     expect(api.importBibleTranslation).not.toHaveBeenCalled();
   });
+
+  it('formato JSON nao reconhecido mostra erro sem chamar o nucleo', async () => {
+    const user = userEvent.setup();
+    render(<BibleNavigator />);
+
+    const arquivo = new File([JSON.stringify({ qualquer: 'coisa' })], 'nao-e-biblia.json', {
+      type: 'application/json',
+    });
+    await user.upload(screen.getByLabelText('Importar arquivo de traducao'), arquivo);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Formato nao reconhecido');
+    expect(api.importBibleTranslation).not.toHaveBeenCalled();
+  });
+
+  describe('formato legado (array de livros, sem metadado da traducao)', () => {
+    const conteudoLegado = JSON.stringify([
+      { abbrev: 'gn', name: 'Gênesis', chapters: [['No principio...']] },
+      { abbrev: 'ex', name: 'Êxodo', chapters: [['Primeiro versiculo.']] },
+    ]);
+
+    it('pede sigla/nome/idioma antes de importar, e nao chama o nucleo antes disso', async () => {
+      const user = userEvent.setup();
+      render(<BibleNavigator />);
+
+      const arquivo = new File([conteudoLegado], 'nvi.json', { type: 'application/json' });
+      await user.upload(screen.getByLabelText('Importar arquivo de traducao'), arquivo);
+
+      expect(await screen.findByLabelText('Sigla da tradução')).toBeInTheDocument();
+      expect(api.importBibleTranslation).not.toHaveBeenCalled();
+    });
+
+    it('ao preencher e confirmar, importa convertido para o formato nativo', async () => {
+      vi.mocked(api.importBibleTranslation).mockResolvedValue(traducao('t1', 'NVI'));
+      const user = userEvent.setup();
+      render(<BibleNavigator />);
+
+      const arquivo = new File([conteudoLegado], 'nvi.json', { type: 'application/json' });
+      await user.upload(screen.getByLabelText('Importar arquivo de traducao'), arquivo);
+
+      await user.type(await screen.findByLabelText('Sigla da tradução'), 'NVI');
+      await user.type(screen.getByLabelText('Nome da tradução'), 'Nova Versao Internacional');
+      await user.click(screen.getByRole('button', { name: 'Concluir importação' }));
+
+      await waitFor(() =>
+        expect(api.importBibleTranslation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            abbreviation: 'NVI',
+            name: 'Nova Versao Internacional',
+            language: 'pt-BR',
+            books: [
+              { name: 'Gênesis', abbreviation: 'gn', chapters: [['No principio...']] },
+              { name: 'Êxodo', abbreviation: 'ex', chapters: [['Primeiro versiculo.']] },
+            ],
+          }),
+        ),
+      );
+    });
+
+    it('cancelar descarta a importacao pendente sem chamar o nucleo', async () => {
+      const user = userEvent.setup();
+      render(<BibleNavigator />);
+
+      const arquivo = new File([conteudoLegado], 'nvi.json', { type: 'application/json' });
+      await user.upload(screen.getByLabelText('Importar arquivo de traducao'), arquivo);
+      await screen.findByLabelText('Sigla da tradução');
+
+      await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+      expect(screen.queryByLabelText('Sigla da tradução')).not.toBeInTheDocument();
+      expect(api.importBibleTranslation).not.toHaveBeenCalled();
+    });
+  });
 });
