@@ -28,6 +28,8 @@ pub enum AppErrorCode {
     InvalidInput,
     /// Falha ao abrir, posicionar ou fechar a janela de projecao.
     DisplayFailed,
+    /// Falha ao buscar letra num servico externo (rede, ou nenhum resultado).
+    LyricsSearchFailed,
 }
 
 impl AppError {

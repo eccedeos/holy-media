@@ -11,6 +11,7 @@ mod db;
 mod display;
 mod error;
 mod fts;
+mod lyrics;
 mod presentation;
 mod services;
 mod songs;
@@ -100,6 +101,7 @@ pub fn run() {
             commands::display::display_state,
             commands::display::display_open,
             commands::display::display_close,
+            commands::lyrics::lyrics_search,
             commands::services::services_list,
             commands::services::services_get,
             commands::services::services_create,

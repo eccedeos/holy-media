@@ -116,6 +116,7 @@ A estrutura cresce por necessidade, não por antecipação: `local-server`,
 - [Banco de dados e busca](docs/database.md)
 - [Presentation Engine](docs/presentation-engine.md)
 - [Bíblia](docs/bible.md)
+- [Busca de letra online](docs/lyrics.md)
 - [Fundo, texto avulso e QR Code](docs/background.md)
 - [Atalhos de teclado](docs/keyboard-shortcuts.md)
 - [Ordem do culto](docs/service-order.md)
@@ -136,7 +137,14 @@ MIT.
 ### Sobre conteúdo de terceiros
 
 O projeto **não** distribui letras de música nem traduções bíblicas protegidas
-por direitos autorais, e não faz scraping de sites de letras. O que existe é a
-capacidade de **importar** conteúdo que a igreja já possua ou que esteja em
-domínio público / devidamente licenciado. A responsabilidade pelo conteúdo
-importado é de quem o importa.
+por direitos autorais. O que existe é a capacidade de **importar** (ou buscar
+online, no caso de letras — ver abaixo) conteúdo que a igreja já possua o
+direito de usar, ou que esteja em domínio público / devidamente licenciado. A
+responsabilidade pelo conteúdo é de quem o importa ou de quem confirma o
+resultado de uma busca antes de salvar.
+
+A busca de letra online (`lyrics::search`, lrclib.net) é uma decisão de risco
+aceito, não uma garantia de direitos: o software do serviço é aberto, mas as
+letras que ele indexa são enviadas por usuários, sem garantia de que quem
+enviou tinha o direito de fazer isso. O resultado é sempre uma sugestão a
+confirmar — nada é salvo só por ter sido encontrado.

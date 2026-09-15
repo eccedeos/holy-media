@@ -5,8 +5,10 @@ import type { Song } from '@holy-media/types';
 import { SongPanel } from './song-panel';
 import { resetSongsStore, useSongsStore } from '@/store/songs-store';
 import * as api from '@/lib/songs-api';
+import * as lyricsApi from '@/lib/lyrics-api';
 
 vi.mock('@/lib/songs-api');
+vi.mock('@/lib/lyrics-api');
 
 function completa(id: string, title: string, overrides: Partial<Song> = {}): Song {
   return {
@@ -101,6 +103,69 @@ describe('cadastro', () => {
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     expect(useSongsStore.getState().mode).toBe('view');
+  });
+});
+
+describe('busca de letra online', () => {
+  it('busca, lista resultados e preenche titulo/artista/letra ao escolher um', async () => {
+    const user = userEvent.setup();
+    vi.mocked(lyricsApi.searchLyricsOnline).mockResolvedValue([
+      {
+        trackName: 'Grande e o Senhor',
+        artistName: 'Adhemar de Campos',
+        albumName: null,
+        lyrics: 'Grande e o Senhor\ne mui digno de louvor',
+      },
+    ]);
+    useSongsStore.getState().startCreate();
+
+    render(<SongPanel />);
+    await user.type(screen.getByLabelText('Buscar letra online'), 'Grande e o Senhor');
+    await user.click(screen.getByRole('button', { name: /Buscar/ }));
+
+    await waitFor(() =>
+      expect(lyricsApi.searchLyricsOnline).toHaveBeenCalledWith('Grande e o Senhor'),
+    );
+    await user.click(
+      await screen.findByRole('button', { name: /Grande e o Senhor.*Adhemar de Campos/ }),
+    );
+
+    expect(screen.getByLabelText('Titulo')).toHaveValue('Grande e o Senhor');
+    expect(screen.getByLabelText('Artista')).toHaveValue('Adhemar de Campos');
+    expect(screen.getByLabelText('Letra')).toHaveValue('Grande e o Senhor\ne mui digno de louvor');
+  });
+
+  it('nao sobrescreve titulo/artista ja preenchidos pelo operador', async () => {
+    const user = userEvent.setup();
+    vi.mocked(lyricsApi.searchLyricsOnline).mockResolvedValue([
+      { trackName: 'Outro nome', artistName: 'Outro artista', albumName: null, lyrics: 'Letra' },
+    ]);
+    useSongsStore.getState().startCreate();
+
+    render(<SongPanel />);
+    await user.type(screen.getByLabelText('Titulo'), 'Meu titulo');
+    await user.type(screen.getByLabelText('Buscar letra online'), 'busca');
+    await user.click(screen.getByRole('button', { name: /Buscar/ }));
+    await user.click(await screen.findByRole('button', { name: /Outro nome/ }));
+
+    expect(screen.getByLabelText('Titulo')).toHaveValue('Meu titulo');
+  });
+
+  it('mostra erro claro quando a busca falha', async () => {
+    const user = userEvent.setup();
+    vi.mocked(lyricsApi.searchLyricsOnline).mockRejectedValue({
+      code: 'LYRICS_SEARCH_FAILED',
+      message: 'Nao foi possivel buscar a letra. Verifique a conexao com a internet.',
+    });
+    useSongsStore.getState().startCreate();
+
+    render(<SongPanel />);
+    await user.type(screen.getByLabelText('Buscar letra online'), 'busca');
+    await user.click(screen.getByRole('button', { name: /Buscar/ }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Nao foi possivel buscar a letra. Verifique a conexao com a internet.',
+    );
   });
 });
 

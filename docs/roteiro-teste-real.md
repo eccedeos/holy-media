@@ -34,6 +34,10 @@ automatizados não alcança.
 
 - [ ] Cadastrar uma música colando uma letra real, com linha em branco
       separando estrofes e refrão.
+- [ ] No cadastro, usar "Buscar letra online" (ver
+      [`lyrics.md`](lyrics.md)) com o título de uma música conhecida e
+      confirmar que a letra encontrada preenche o campo, editável antes de
+      salvar.
 - [ ] Editar a letra de uma música já salva.
 - [ ] Buscar por título, por um trecho da letra, e sem acento (ex.: buscar
       "coracao" e encontrar "Coração").

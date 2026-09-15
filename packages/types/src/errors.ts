@@ -17,6 +17,8 @@ export type AppErrorCode =
   | 'INVALID_INPUT'
   /** Falha ao abrir, posicionar ou fechar a janela de projecao. */
   | 'DISPLAY_FAILED'
+  /** Falha ao buscar letra num servico externo (rede, ou nenhum resultado). */
+  | 'LYRICS_SEARCH_FAILED'
   /** Erro nao classificado. */
   | 'UNKNOWN';
 

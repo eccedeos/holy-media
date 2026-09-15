@@ -17,6 +17,7 @@ export * from './background.js';
 export * from './bible.js';
 export * from './display.js';
 export * from './errors.js';
+export * from './lyrics.js';
 export * from './presentation.js';
 export * from './services.js';
 export * from './songs.js';

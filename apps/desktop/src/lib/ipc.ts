@@ -20,6 +20,7 @@ const FRIENDLY_MESSAGES: Record<AppErrorCode, string> = {
   NOT_FOUND: 'O item pedido nao foi encontrado.',
   INVALID_INPUT: 'Os dados informados nao sao validos.',
   DISPLAY_FAILED: 'Nao foi possivel controlar a tela de projecao.',
+  LYRICS_SEARCH_FAILED: 'Nao foi possivel buscar a letra. Verifique a conexao com a internet.',
   UNKNOWN: 'Ocorreu um erro inesperado.',
 };
 

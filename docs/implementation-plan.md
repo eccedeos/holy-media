@@ -588,11 +588,11 @@ para cada sistema em [`docs/build-instaladores.md`](build-instaladores.md).
 
 ## Riscos conhecidos
 
-| Risco                                               | Como estamos lidando                                          |
-| --------------------------------------------------- | ------------------------------------------------------------- |
-| Comportamento de multi-monitor varia por SO         | isolar em um módulo `display` com fallback para janela normal |
-| WebView do sistema difere entre Windows/Linux/macOS | build target `es2022`, sem APIs de ponta; testar nos três     |
-| Busca degradar com biblioteca grande                | FTS5 desde o início + teste de performance com 5000 músicas   |
-| Direitos autorais de letras e traduções bíblicas    | só importação; nada protegido é distribuído com o software    |
-| Escopo do MVP inchar                                | critério de pronto da Fase 1 é literal: conduzir um culto     |
-| Vídeo pesar demais no PC alvo                       | Fase 2, medido contra o orçamento antes de virar padrão       |
+| Risco                                               | Como estamos lidando                                                                                                                                                |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Comportamento de multi-monitor varia por SO         | isolar em um módulo `display` com fallback para janela normal                                                                                                       |
+| WebView do sistema difere entre Windows/Linux/macOS | build target `es2022`, sem APIs de ponta; testar nos três                                                                                                           |
+| Busca degradar com biblioteca grande                | FTS5 desde o início + teste de performance com 5000 músicas                                                                                                         |
+| Direitos autorais de letras e traduções bíblicas    | nada protegido é distribuído com o instalador; a busca de letra online (`lyrics::search`) e a importação continuam exigindo confirmação do operador antes de salvar |
+| Escopo do MVP inchar                                | critério de pronto da Fase 1 é literal: conduzir um culto                                                                                                           |
+| Vídeo pesar demais no PC alvo                       | Fase 2, medido contra o orçamento antes de virar padrão                                                                                                             |

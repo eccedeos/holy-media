@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react';
-import type { Song, SongInput } from '@holy-media/types';
+import { Search } from 'lucide-react';
+import type { LyricsSearchResult, Song, SongInput } from '@holy-media/types';
 import { Button } from '@/components/ui/button';
 import { formatLyrics, parseLyrics, parseTags } from '@/lib/lyrics';
+import { searchLyricsOnline } from '@/lib/lyrics-api';
+import { createAppError, describeUnknown, isAppError } from '@/lib/ipc';
 import { cn } from '@/lib/utils';
 
 interface SongFormProps {
@@ -37,7 +40,37 @@ export function SongForm({ song, onSubmit, onCancel, error, saving = false }: So
   const [tagsText, setTagsText] = useState(song?.tags.join(', ') ?? '');
   const [lyrics, setLyrics] = useState(song === null ? '' : formatLyrics(song.slides));
 
+  const [lyricsQuery, setLyricsQuery] = useState('');
+  const [lyricsResults, setLyricsResults] = useState<readonly LyricsSearchResult[] | null>(null);
+  const [lyricsSearching, setLyricsSearching] = useState(false);
+  const [lyricsError, setLyricsError] = useState<string | null>(null);
+
   const slides = useMemo(() => parseLyrics(lyrics), [lyrics]);
+
+  const handleSearchLyrics = async () => {
+    const query = lyricsQuery.trim();
+    if (query === '') return;
+
+    setLyricsSearching(true);
+    setLyricsError(null);
+    try {
+      const results = await searchLyricsOnline(query);
+      setLyricsResults(results);
+    } catch (cause) {
+      const error = isAppError(cause) ? cause : createAppError('UNKNOWN', describeUnknown(cause));
+      setLyricsError(error.message);
+      setLyricsResults(null);
+    } finally {
+      setLyricsSearching(false);
+    }
+  };
+
+  const handleUseLyricsResult = (result: LyricsSearchResult) => {
+    setLyrics(result.lyrics);
+    if (artist.trim() === '') setArtist(result.artistName);
+    if (title.trim() === '') setTitle(result.trackName);
+    setLyricsResults(null);
+  };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -125,6 +158,68 @@ export function SongForm({ song, onSubmit, onCancel, error, saving = false }: So
               className={fieldClass}
             />
           </div>
+        </div>
+
+        <div className="mt-4">
+          <label className={labelClass} htmlFor="song-lyrics-search">
+            Buscar letra online
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="song-lyrics-search"
+              value={lyricsQuery}
+              onChange={(event) => setLyricsQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  void handleSearchLyrics();
+                }
+              }}
+              placeholder="Titulo e/ou artista"
+              className={fieldClass}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              disabled={lyricsQuery.trim() === '' || lyricsSearching}
+              onClick={() => void handleSearchLyrics()}
+            >
+              <Search className="size-4" aria-hidden />
+              {lyricsSearching ? 'Buscando...' : 'Buscar'}
+            </Button>
+          </div>
+          <p className="mt-1 text-xs text-content-muted">
+            Resultado de terceiros (lrclib.net) -- confira e edite antes de salvar. A
+            responsabilidade pelo uso da letra e' de quem a importa.
+          </p>
+
+          {lyricsError !== null && (
+            <p role="alert" className="mt-1 text-xs text-live">
+              {lyricsError}
+            </p>
+          )}
+
+          {lyricsResults !== null && (
+            <ul className="mt-2 flex max-h-40 flex-col gap-1 overflow-y-auto rounded-md border border-line p-1">
+              {lyricsResults.length === 0 ? (
+                <li className="px-2 py-1 text-xs text-content-muted">Nenhum resultado.</li>
+              ) : (
+                lyricsResults.map((result, index) => (
+                  <li key={`${result.trackName}-${result.artistName}-${index}`}>
+                    <button
+                      type="button"
+                      onClick={() => handleUseLyricsResult(result)}
+                      className="w-full rounded-md px-2 py-1 text-left text-xs hover:bg-surface-sunken"
+                    >
+                      <span className="font-medium">{result.trackName}</span>
+                      {' — '}
+                      <span className="text-content-muted">{result.artistName}</span>
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          )}
         </div>
 
         <div className="mt-4">
