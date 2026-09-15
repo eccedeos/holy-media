@@ -107,25 +107,46 @@ pub fn open(app: &AppHandle, monitor_index: usize) -> AppResult<()> {
     let position = *monitor.position();
     let size = *monitor.size();
 
-    let window = match app.get_webview_window(PROJECTION_LABEL) {
-        Some(existing) => existing,
+    let (window, just_created) = match app.get_webview_window(PROJECTION_LABEL) {
+        Some(existing) => (existing, false),
         None => {
-            WebviewWindowBuilder::new(app, PROJECTION_LABEL, WebviewUrl::App("index.html".into()))
-                .title("Holy Media - Projecao")
-                // Sem barra de titulo nem bordas: a congregacao ve conteudo, nao
-                // uma janela de computador.
-                .decorations(false)
-                .resizable(false)
-                .skip_taskbar(true)
-                .initialization_script(ROLE_SCRIPT)
-                .build()
-                .map_err(display_error)?
+            let built = WebviewWindowBuilder::new(
+                app,
+                PROJECTION_LABEL,
+                WebviewUrl::App("index.html".into()),
+            )
+            .title("Holy Media - Projecao")
+            // Sem barra de titulo nem bordas: a congregacao ve conteudo, nao
+            // uma janela de computador.
+            .decorations(false)
+            .resizable(false)
+            .skip_taskbar(true)
+            // Escondida at' terminar de posicionar: sem isto a janela
+            // aparece um instante no tamanho padrao (o que o Tauri usa
+            // quando nenhum e' pedido no builder) antes de saltar para o
+            // monitor certo -- um "pisca" visivel bem na frente da
+            // igreja, e no Windows um flash a mais na sequencia de
+            // chamadas nativas abaixo.
+            .visible(false)
+            .initialization_script(ROLE_SCRIPT)
+            .build()
+            .map_err(display_error)?;
+            (built, true)
         }
     };
 
+    // Uma janela recem-criada nunca esteve em tela cheia -- desligar algo que
+    // nunca foi ligado e' a chamada nativa a mais que travava a aplicacao
+    // inteira no Windows (as duas janelas compartilham o mesmo laco de
+    // eventos, por isso o Control Room tambem parecia travado). So' a janela
+    // que ja existia (mudando de monitor) precisa sair da tela cheia antes de
+    // ser reposicionada.
+    if !just_created {
+        window.set_fullscreen(false).map_err(display_error)?;
+    }
+
     // Posicionar antes de ir para tela cheia: em varios sistemas o fullscreen
     // usa o monitor onde a janela esta naquele momento.
-    window.set_fullscreen(false).map_err(display_error)?;
     window.set_position(position).map_err(display_error)?;
     window.set_size(size).map_err(display_error)?;
     window.set_fullscreen(true).map_err(display_error)?;
