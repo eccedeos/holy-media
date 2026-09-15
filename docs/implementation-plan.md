@@ -386,16 +386,19 @@ na lista — mudar a ordem não pode perder de vista o que está no ar).
   banco a cada apresentação (nunca a partir do texto que a interface tem em
   mãos) — a mesma regra de integridade já aplicada às músicas.
 
-**Decisão deliberada: nenhuma tradução vem com o instalador.** O briefing
-original pedia uma tradução de domínio público já embutida. Duas razões
-pesaram contra: direitos autorais (a maioria das traduções em português é
-protegida; "domínio público" de verdade não é algo para decidir sozinho
-dentro do código de um projeto de terceiros) e fidelidade do texto (não há
-aqui uma forma verificada de baixar e validar um arquivo de tradução antes de
-embuti-lo — reproduzir Escritura de memória arrisca errar uma palavra, um
-problema mais grave que um typo numa letra). O módulo entrega o mecanismo
-inteiro; cada igreja importa a tradução que tem o direito de usar. O
-raciocínio completo está em [`docs/bible.md`](bible.md).
+**Decisão deliberada: nenhuma tradução protegida vem com o instalador.** O
+briefing original pedia uma tradução de domínio público já embutida. Duas
+razões pesaram contra, na decisão original: direitos autorais (a maioria das
+traduções em português é protegida; "domínio público" de verdade não é algo
+para decidir sozinho dentro do código de um projeto de terceiros) e
+fidelidade do texto (não havia, na ocasião, uma forma verificada de baixar e
+validar um arquivo de tradução antes de embuti-lo — reproduzir Escritura de
+memória arrisca errar uma palavra, um problema mais grave que um typo numa
+letra). Depois que essa verificação passou a existir (metadado de licença
+explícito na fonte), uma única exceção foi aberta: a Tradução Brasileira (TB)
+vem embutida como seed opcional, nunca automático. O módulo entrega o
+mecanismo inteiro; cada igreja importa qualquer outra tradução que tenha o
+direito de usar. O raciocínio completo está em [`docs/bible.md`](bible.md).
 
 **O bug que só apareceu rodando o script de migration.** Um `cargo fmt`
 anterior já tinha reformatado o array `MIGRATIONS` para várias linhas, e um

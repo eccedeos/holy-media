@@ -43,6 +43,7 @@ export function BibleNavigator() {
   const selectChapter = useBibleStore((state) => state.selectChapter);
   const search = useBibleStore((state) => state.search);
   const importTranslation = useBibleStore((state) => state.importTranslation);
+  const seedPublicDomain = useBibleStore((state) => state.seedPublicDomain);
 
   const selectedBook = books.find((book) => book.id === bookId) ?? null;
 
@@ -253,10 +254,13 @@ export function BibleNavigator() {
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {translations.length === 0 ? (
-          <div className="flex flex-col gap-2 p-3 text-xs text-content-muted">
+          <div className="flex flex-col items-center gap-3 p-3 text-center text-xs text-content-muted">
             <p>Nenhuma traducao importada.</p>
+            <Button variant="outline" size="sm" onClick={() => void seedPublicDomain()}>
+              Adicionar Traducao Brasileira (dominio publico)
+            </Button>
             <p>
-              Importe um arquivo de traducao que sua igreja tenha os direitos de usar. O formato
+              Ou importe um arquivo de traducao que sua igreja tenha os direitos de usar. O formato
               esta documentado em <code>docs/bible.md</code>.
             </p>
           </div>

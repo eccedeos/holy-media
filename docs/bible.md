@@ -3,11 +3,12 @@
 Tradução, livro, capítulo, versículo — com busca por palavra e por referência.
 Vive em `apps/desktop/src-tauri/src/bible/`.
 
-## Nenhuma tradução vem com o instalador
+## Nenhuma tradução protegida vem com o instalador
 
 Esta é uma decisão deliberada, não um corte de escopo silencioso. O briefing
 original pedia uma tradução de domínio público já embutida, para dar para
-testar sem nenhum passo extra. Duas razões pesaram contra:
+testar sem nenhum passo extra. Duas razões pesaram contra, na decisão
+original:
 
 1. **Direitos autorais.** A maioria das traduções em português (ARA, ARC, NVI,
    NTLH...) é protegida. "Domínio público" de verdade, em português, é uma
@@ -16,15 +17,26 @@ testar sem nenhum passo extra. Duas razões pesaram contra:
 2. **Fidelidade do texto.** Reproduzir Escritura de memória, ou copiada sem
    verificação linha a linha contra uma fonte confiável, arrisca errar uma
    palavra — um problema mais grave do que um typo numa letra de música.
-   Não há aqui uma forma verificada de baixar e validar um arquivo de
-   tradução antes de embuti-lo no instalador.
+   Não havia, na ocasião, uma forma verificada de baixar e validar um arquivo
+   de tradução antes de embuti-lo no instalador.
 
-Em vez disso, o módulo entrega o mecanismo inteiro — schema, importação,
-navegação, busca, apresentação — sem nenhum versículo real dentro do
-repositório. Toda igreja importa a tradução que tem o direito de usar. Os
-testes automatizados usam texto claramente fictício ("Texto de exemplo,
-versiculo dois, com a palavra aleluia"), nunca Escritura verdadeira, para que
-não haja ambiguidade sobre a origem do texto em nenhum arquivo deste projeto.
+O módulo entrega o mecanismo inteiro — schema, importação, navegação, busca,
+apresentação — funcionando com qualquer tradução importada. **Uma única
+exceção** foi aberta depois que a razão 2 deixou de se aplicar: a **Tradução
+Brasileira** (TB) é embutida no binário (`bible/seed.rs`,
+`bible/assets/tb.json`) porque a fonte de origem
+(`damarals/biblias`, `data/canonical/TB/meta.json`) marca explicitamente
+`"license": "public-domain"` — a verificação linha a linha que faltava antes.
+O seed nunca roda automaticamente: a tela vazia oferece um botão
+("Adicionar Tradução Brasileira") e o comando (`bible_seed_public_domain`)
+se recusa se já houver qualquer tradução importada, mesmo raciocínio de
+`songs::seed_examples` — nunca substitui dado que o operador já trouxe.
+
+Qualquer outra tradução continua entrando só por importação. Toda igreja
+importa a tradução que tem o direito de usar. Os testes automatizados usam
+texto claramente fictício ("Texto de exemplo, versiculo dois, com a palavra
+aleluia"), nunca Escritura verdadeira, para que não haja ambiguidade sobre a
+origem do texto em nenhum arquivo de teste deste projeto.
 
 ## Esquema
 
@@ -142,10 +154,12 @@ continuam sendo do detentor original):
 
 As três primeiras são uma fonte segura para testar o módulo sem entrar em
 zona cinzenta de direitos autorais (ex.: para o
-[roteiro de teste real](roteiro-teste-real.md)). As demais continuam
-utilizáveis — uma igreja pode importar a tradução que já usa — mas a
-responsabilidade de ter os direitos de uso é de quem importa, exatamente como
-antes: este projeto não distribui nenhuma delas.
+[roteiro de teste real](roteiro-teste-real.md)); a TB, especificamente, já
+vem embutida no instalador como seed opcional (ver seção acima) — BLIVRE e
+ALM1911 seguem só por importação manual, como qualquer outra. As demais
+continuam utilizáveis — uma igreja pode importar a tradução que já usa — mas
+a responsabilidade de ter os direitos de uso é de quem importa, exatamente
+como antes: este projeto não distribui nenhuma delas.
 
 ## Referências e busca: uma caixa só
 

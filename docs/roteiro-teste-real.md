@@ -42,12 +42,13 @@ automatizados não alcança.
 
 ## 3. Bíblia
 
-- [ ] Importar uma tradução que a igreja tenha o direito de usar (formatos
-      aceitos e fontes verificadas de domínio público em
-      [`bible.md`](bible.md) — **nenhuma tradução vem com o instalador**, de
-      propósito). Para só testar, a `TB` (Tradução Brasileira) do
-      [`damarals/biblias`](https://github.com/damarals/biblias) é domínio
-      público e importa direto, sem conversão.
+- [ ] Na tela vazia da Bíblia, clicar em "Adicionar Tradução Brasileira
+      (domínio público)" e confirmar que os 66 livros aparecem — essa
+      tradução já vem embutida no instalador, ver [`bible.md`](bible.md).
+- [ ] Importar uma segunda tradução que a igreja tenha o direito de usar
+      (formatos aceitos e fontes verificadas de domínio público em
+      [`bible.md`](bible.md) — as demais **não** vêm com o instalador, de
+      propósito).
 - [ ] Navegar por livro e capítulo.
 - [ ] Buscar por referência ("João 3:16", "Salmos 23").
 - [ ] Buscar por palavra.

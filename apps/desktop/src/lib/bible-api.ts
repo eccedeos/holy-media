@@ -22,6 +22,14 @@ export function deleteBibleTranslation(id: string): Promise<void> {
   return invokeCommand<void>('bible_delete_translation', { id });
 }
 
+/**
+ * Importa a Traducao Brasileira (dominio publico) embutida no instalador.
+ * `null` quando ja havia alguma traducao -- o seed nunca sobrescreve.
+ */
+export function seedPublicDomainBibleTranslation(): Promise<BibleTranslation | null> {
+  return invokeCommand<BibleTranslation | null>('bible_seed_public_domain');
+}
+
 export function listBibleBooks(translationId: string): Promise<BibleBook[]> {
   return invokeCommand<BibleBook[]>('bible_list_books', { translationId });
 }

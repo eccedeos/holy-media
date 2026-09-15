@@ -272,3 +272,30 @@ fn referencia_ignora_acento_e_caixa_no_nome_do_livro() {
         repository::resolve_reference(&db, &traducao.id, "levitico 1:1").expect("resolver");
     assert_eq!(resultado.book.name, "Levítico");
 }
+
+#[test]
+fn seed_de_dominio_publico_importa_quando_nao_ha_nenhuma_traducao() {
+    let db = banco();
+
+    let traducao = repository::seed_public_domain(&db)
+        .expect("nao deveria falhar")
+        .expect("deveria importar, biblioteca estava vazia");
+
+    assert_eq!(traducao.abbreviation, "TB");
+    let livros = repository::list_books(&db, &traducao.id).expect("listar livros");
+    assert_eq!(livros.len(), 66);
+}
+
+#[test]
+fn seed_de_dominio_publico_nao_sobrescreve_traducao_ja_importada() {
+    let db = banco();
+    repository::import_translation(&db, traducao_de_teste()).expect("importar");
+
+    let resultado = repository::seed_public_domain(&db).expect("nao deveria falhar");
+
+    assert!(
+        resultado.is_none(),
+        "nao deveria importar por cima do que ja existe"
+    );
+    assert_eq!(repository::list_translations(&db).expect("listar").len(), 1);
+}

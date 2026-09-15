@@ -122,6 +122,27 @@ pub fn import_translation(db: &Database, input: BibleImportInput) -> AppResult<B
     })
 }
 
+/// Importa a Traducao Brasileira (dominio publico) embutida no binario --
+/// ver `bible::seed`. Recusa (devolvendo `None`, nao um erro) se ja houver
+/// qualquer traducao importada, no mesmo raciocinio de `songs::seed_examples`:
+/// o seed nao pode sobrescrever o que o operador ja trouxe.
+pub fn seed_public_domain(db: &Database) -> AppResult<Option<BibleTranslation>> {
+    let has_any: bool = db.with_connection(|connection| {
+        Ok(connection.query_row(
+            "SELECT EXISTS (SELECT 1 FROM bible_translations)",
+            [],
+            |row| row.get(0),
+        )?)
+    })?;
+
+    if has_any {
+        return Ok(None);
+    }
+
+    let input = super::seed::public_domain_translation()?;
+    import_translation(db, input).map(Some)
+}
+
 /// Remove a traducao. Livros e versiculos saem pelo ON DELETE CASCADE; o
 /// indice de busca precisa ser limpo a mao, por ser tabela virtual.
 pub fn delete_translation(db: &Database, id: &str) -> AppResult<()> {

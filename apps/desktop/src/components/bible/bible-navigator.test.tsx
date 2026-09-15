@@ -35,6 +35,18 @@ describe('sem traducao importada', () => {
 
     expect(await screen.findByText('Nenhuma traducao importada.')).toBeInTheDocument();
   });
+
+  it('o botao de traducao de dominio publico chama o seed e recarrega a lista', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.seedPublicDomainBibleTranslation).mockResolvedValue(traducao('tb', 'TB'));
+    render(<BibleNavigator />);
+
+    await screen.findByText('Nenhuma traducao importada.');
+    await user.click(screen.getByRole('button', { name: /Traducao Brasileira/ }));
+
+    await waitFor(() => expect(api.seedPublicDomainBibleTranslation).toHaveBeenCalled());
+    expect(api.listBibleTranslations).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('com traducao', () => {

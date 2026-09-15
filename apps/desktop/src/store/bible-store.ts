@@ -42,6 +42,7 @@ interface BibleState {
   search: (query: string) => Promise<void>;
   importTranslation: (input: BibleImportInput) => Promise<void>;
   deleteTranslation: (id: string) => Promise<void>;
+  seedPublicDomain: () => Promise<void>;
 }
 
 /**
@@ -200,6 +201,16 @@ export const useBibleStore = create<BibleState>((set, get) => ({
       if (get().translationId === id) {
         set({ translationId: null, books: [], bookId: null, chapter: null, chapterVerses: [] });
       }
+      set({ error: null });
+      await get().refreshTranslations();
+    } catch (cause) {
+      set({ error: toAppError(cause) });
+    }
+  },
+
+  seedPublicDomain: async () => {
+    try {
+      await api.seedPublicDomainBibleTranslation();
       set({ error: null });
       await get().refreshTranslations();
     } catch (cause) {

@@ -27,6 +27,15 @@ pub fn bible_delete_translation(state: State<'_, AppState>, id: String) -> AppRe
     repository::delete_translation(&state.db, &id)
 }
 
+/// Importa a Traducao Brasileira (dominio publico) embutida no binario --
+/// unica excecao a regra de nao distribuir Escritura com o instalador, ver
+/// `docs/bible.md`. `None` quando ja havia alguma traducao (o seed nunca
+/// sobrescreve).
+#[tauri::command]
+pub fn bible_seed_public_domain(state: State<'_, AppState>) -> AppResult<Option<BibleTranslation>> {
+    repository::seed_public_domain(&state.db)
+}
+
 #[tauri::command]
 pub fn bible_list_books(
     state: State<'_, AppState>,

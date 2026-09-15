@@ -92,6 +92,7 @@ pub fn run() {
             commands::bible::bible_list_translations,
             commands::bible::bible_import_translation,
             commands::bible::bible_delete_translation,
+            commands::bible::bible_seed_public_domain,
             commands::bible::bible_list_books,
             commands::bible::bible_get_chapter,
             commands::bible::bible_search,

@@ -5,3 +5,6 @@ target
 pnpm-lock.yaml
 apps/desktop/src-tauri/gen
 apps/desktop/src-tauri/icons
+# Gerado uma vez a partir da fonte publica (ver bible/seed.rs) -- reformatar
+# so' produziria um diff gigante sem nenhum ganho.
+apps/desktop/src-tauri/src/bible/assets/tb.json
