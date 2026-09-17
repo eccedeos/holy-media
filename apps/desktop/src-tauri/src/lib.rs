@@ -64,6 +64,12 @@ pub fn run() {
             app.manage(state::AppState::new(database));
             app.manage(commands::display::SelectedMonitor::default());
 
+            // Cria a janela de projecao (escondida) aqui, na abertura do
+            // app, para o custo pesado de inicializa-la no Windows nao cair
+            // em cima do operador no meio do culto -- ver
+            // `display::ensure_created`.
+            display::ensure_created(app.handle())?;
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

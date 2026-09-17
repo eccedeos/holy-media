@@ -92,6 +92,74 @@ pub fn list_monitors(app: &AppHandle) -> AppResult<Vec<MonitorInfo>> {
         .collect())
 }
 
+/// Busca o ambiente do WebView2 do Control Room, para a projecao nascer
+/// compartilhando-o em vez de criar um novo do zero.
+///
+/// So' existe no Windows: e' a unica plataforma onde o Tauri nao reaproveita
+/// o ambiente entre janelas por conta propria (no Linux o `WebContext` ja
+/// cuida disso). `with_webview` despacha para a thread principal -- como
+/// quem chama isto ja esta nela (todo comando deste projeto e' sincrono,
+/// exceto a busca de letra), o despacho e' direto, sem fila; o canal aqui e'
+/// so' para trazer o valor de volta do closure.
+#[cfg(windows)]
+fn control_room_environment(
+    app: &AppHandle,
+) -> AppResult<webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Environment> {
+    let control_room = app.get_webview_window(CONTROL_ROOM_LABEL).ok_or_else(|| {
+        AppError::new(
+            AppErrorCode::DisplayFailed,
+            "Nao foi possivel controlar a tela de projecao.",
+        )
+        .with_detail("janela do operador nao encontrada")
+    })?;
+
+    let (tx, rx) = std::sync::mpsc::channel();
+    control_room
+        .with_webview(move |webview| {
+            let _ = tx.send(webview.environment());
+        })
+        .map_err(display_error)?;
+
+    rx.recv().map_err(display_error)
+}
+
+/// Garante que a janela de projecao existe, escondida, sem se preocupar com
+/// monitor -- quem decide onde e quando mostrar e' `open`.
+///
+/// Chamada uma vez, no `setup()` do app: e' aqui que o custo pesado de criar
+/// o WebView2 da segunda janela acontece, antes do operador comecar a usar o
+/// programa. Sem isto, esse custo cairia exatamente no meio do culto, na
+/// primeira vez que o operador clicasse em "abrir projecao" -- e no Windows,
+/// sem um ambiente compartilhado, criar um WebView2 do zero e' pesado em
+/// disco e sincrono na mesma thread que desenha as duas janelas, travando o
+/// app inteiro (nao so' a projecao) pelo tempo que isso levar. Reordenar as
+/// chamadas nativas de janela (as duas tentativas anteriores) nunca ia
+/// resolver isto -- o gasto esta em criar a janela, nao na ordem das
+/// chamadas depois de criada.
+pub fn ensure_created(app: &AppHandle) -> AppResult<()> {
+    if app.get_webview_window(PROJECTION_LABEL).is_some() {
+        return Ok(());
+    }
+
+    let builder =
+        WebviewWindowBuilder::new(app, PROJECTION_LABEL, WebviewUrl::App("index.html".into()))
+            .title("Holy Media - Projecao")
+            // Sem barra de titulo nem bordas: a congregacao ve conteudo, nao
+            // uma janela de computador.
+            .decorations(false)
+            .resizable(false)
+            .skip_taskbar(true)
+            .visible(false)
+            .initialization_script(ROLE_SCRIPT);
+
+    #[cfg(windows)]
+    let builder = builder.with_environment(control_room_environment(app)?);
+
+    builder.build().map_err(display_error)?;
+
+    Ok(())
+}
+
 /// Abre a projecao no monitor escolhido, ou move a janela ja aberta para la.
 pub fn open(app: &AppHandle, monitor_index: usize) -> AppResult<()> {
     let monitors = app.available_monitors().map_err(display_error)?;
@@ -106,61 +174,50 @@ pub fn open(app: &AppHandle, monitor_index: usize) -> AppResult<()> {
 
     let position = *monitor.position();
     let size = *monitor.size();
-    // O builder posiciona em pixels logicos; o monitor devolve pixels
-    // fisicos. Sem esta conversao a janela cai no lugar errado em qualquer
-    // monitor com escala diferente de 100% -- comum no Windows.
-    let scale = monitor.scale_factor();
 
-    match app.get_webview_window(PROJECTION_LABEL) {
-        Some(existing) => {
-            // Janela ja existe: pode estar em outro monitor. Sair da tela
-            // cheia antes de reposicionar -- em varios sistemas o fullscreen
-            // usa o monitor onde a janela esta naquele momento.
-            existing.set_fullscreen(false).map_err(display_error)?;
-            existing.set_position(position).map_err(display_error)?;
-            existing.set_size(size).map_err(display_error)?;
-            existing.set_fullscreen(true).map_err(display_error)?;
-            existing.show().map_err(display_error)?;
-        }
-        None => {
-            // Janela nova: posicao, tamanho e tela cheia entram direto no
-            // builder, em vez de uma sequencia de chamadas nativas depois de
-            // criada. Essa sequencia -- ainda que a janela partisse escondida
-            // -- era o que travava o laco de eventos inteiro no Windows (as
-            // duas janelas compartilham o mesmo laco, por isso o Control
-            // Room tambem parava de responder a comandos ate' um simples
-            // avancar de slide). Nascer ja no estado final elimina as
-            // chamadas em vez de so' reordena-las.
-            WebviewWindowBuilder::new(app, PROJECTION_LABEL, WebviewUrl::App("index.html".into()))
-                .title("Holy Media - Projecao")
-                // Sem barra de titulo nem bordas: a congregacao ve conteudo, nao
-                // uma janela de computador.
-                .decorations(false)
-                .resizable(false)
-                .skip_taskbar(true)
-                .position(position.x as f64 / scale, position.y as f64 / scale)
-                .inner_size(size.width as f64 / scale, size.height as f64 / scale)
-                .fullscreen(true)
-                .initialization_script(ROLE_SCRIPT)
-                .build()
-                .map_err(display_error)?;
-        }
-    }
+    // Rede de seguranca: `ensure_created` ja devia ter rodado no setup do
+    // app. So' entraria aqui se isso tivesse falhado por algum motivo.
+    ensure_created(app)?;
+    let window = app
+        .get_webview_window(PROJECTION_LABEL)
+        .ok_or_else(|| display_error("janela de projecao nao encontrada apos criar"))?;
+
+    // Sair da tela cheia antes de reposicionar -- em varios sistemas o
+    // fullscreen usa o monitor onde a janela esta naquele momento.
+    window.set_fullscreen(false).map_err(display_error)?;
+    window.set_position(position).map_err(display_error)?;
+    window.set_size(size).map_err(display_error)?;
+    window.set_fullscreen(true).map_err(display_error)?;
+    window.show().map_err(display_error)?;
 
     Ok(())
 }
 
 /// Fecha a projecao.
+///
+/// Esconde a janela em vez de destrui-la: ela continua existindo (com o
+/// WebView2 ja pronto) para a proxima vez que o operador abrir a projecao
+/// nao pagar de novo o custo de criar tudo do zero -- ver `ensure_created`.
 pub fn close(app: &AppHandle) -> AppResult<()> {
     if let Some(window) = app.get_webview_window(PROJECTION_LABEL) {
-        window.close().map_err(display_error)?;
+        window.hide().map_err(display_error)?;
     }
     Ok(())
 }
 
 /// Retrato do estado da projecao.
-pub fn state(app: &AppHandle, monitor_index: Option<usize>) -> AppResult<DisplayState> {
-    let is_open = app.get_webview_window(PROJECTION_LABEL).is_some();
+///
+/// `is_open` vem de quem chamou -- `commands::display::SelectedMonitor` --
+/// em vez de ser calculado aqui a partir da janela nativa. Depois que `close`
+/// passou a esconder em vez de destruir, a janela sempre existe depois do
+/// primeiro `open`, entao "a janela existe" nao serve mais de sinal; e
+/// perguntar `window.is_visible()` bem depois de chamar `show()`/`hide()`
+/// tem uma corrida real (o GTK/WebKit mapeia a janela de forma assincrona).
+pub fn state(
+    app: &AppHandle,
+    monitor_index: Option<usize>,
+    is_open: bool,
+) -> AppResult<DisplayState> {
     Ok(DisplayState {
         monitors: list_monitors(app)?,
         is_open,
