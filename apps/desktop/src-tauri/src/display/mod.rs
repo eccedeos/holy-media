@@ -92,19 +92,32 @@ pub fn list_monitors(app: &AppHandle) -> AppResult<Vec<MonitorInfo>> {
         .collect())
 }
 
-/// Busca o ambiente do WebView2 do Control Room, para a projecao nascer
-/// compartilhando-o em vez de criar um novo do zero.
+/// Constroi a janela de projecao, escondida, com o titulo/decoracao padrao.
+fn build_projection_window<M: tauri::Manager<tauri::Wry>>(
+    app: &M,
+) -> tauri::WebviewWindowBuilder<'_, tauri::Wry, M> {
+    WebviewWindowBuilder::new(app, PROJECTION_LABEL, WebviewUrl::App("index.html".into()))
+        .title("Holy Media - Projecao")
+        // Sem barra de titulo nem bordas: a congregacao ve conteudo, nao
+        // uma janela de computador.
+        .decorations(false)
+        .resizable(false)
+        .skip_taskbar(true)
+        .visible(false)
+        .initialization_script(ROLE_SCRIPT)
+}
+
+/// Cria a janela de projecao no Windows, compartilhando o ambiente do
+/// WebView2 que o Control Room ja tem em vez de deixar criar um novo do
+/// zero -- ver o comentario de `ensure_created` para o porque disso importar.
 ///
-/// So' existe no Windows: e' a unica plataforma onde o Tauri nao reaproveita
-/// o ambiente entre janelas por conta propria (no Linux o `WebContext` ja
-/// cuida disso). `with_webview` despacha para a thread principal -- como
-/// quem chama isto ja esta nela (todo comando deste projeto e' sincrono,
-/// exceto a busca de letra), o despacho e' direto, sem fila; o canal aqui e'
-/// so' para trazer o valor de volta do closure.
+/// O ambiente (`ICoreWebView2Environment`) nao e' `Send` -- nao da para
+/// tira-lo do closure do `with_webview` por um canal, como se fosse um valor
+/// qualquer. Por isso a janela inteira e' construida AQUI DENTRO, na mesma
+/// chamada que ja tem o ambiente do Control Room em maos; so' o resultado
+/// (sucesso ou erro, que sao `Send`) sai pelo canal.
 #[cfg(windows)]
-fn control_room_environment(
-    app: &AppHandle,
-) -> AppResult<webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Environment> {
+fn create_projection_webview(app: &AppHandle) -> AppResult<()> {
     let control_room = app.get_webview_window(CONTROL_ROOM_LABEL).ok_or_else(|| {
         AppError::new(
             AppErrorCode::DisplayFailed,
@@ -113,14 +126,31 @@ fn control_room_environment(
         .with_detail("janela do operador nao encontrada")
     })?;
 
-    let (tx, rx) = std::sync::mpsc::channel();
+    let app = app.clone();
+    let (tx, rx) = std::sync::mpsc::channel::<AppResult<()>>();
     control_room
         .with_webview(move |webview| {
-            let _ = tx.send(webview.environment());
+            let result = build_projection_window(&app)
+                .with_environment(webview.environment())
+                .build()
+                .map(|_| ())
+                .map_err(display_error);
+            let _ = tx.send(result);
         })
         .map_err(display_error)?;
 
-    rx.recv().map_err(display_error)
+    rx.recv().map_err(display_error)?
+}
+
+/// Cria a janela de projecao fora do Windows -- aqui o `WebContext` do Tauri
+/// ja reaproveita o motor entre janelas por conta propria, sem precisar
+/// compartilhar nada na mao.
+#[cfg(not(windows))]
+fn create_projection_webview(app: &AppHandle) -> AppResult<()> {
+    build_projection_window(app)
+        .build()
+        .map(|_| ())
+        .map_err(display_error)
 }
 
 /// Garante que a janela de projecao existe, escondida, sem se preocupar com
@@ -141,23 +171,7 @@ pub fn ensure_created(app: &AppHandle) -> AppResult<()> {
         return Ok(());
     }
 
-    let builder =
-        WebviewWindowBuilder::new(app, PROJECTION_LABEL, WebviewUrl::App("index.html".into()))
-            .title("Holy Media - Projecao")
-            // Sem barra de titulo nem bordas: a congregacao ve conteudo, nao
-            // uma janela de computador.
-            .decorations(false)
-            .resizable(false)
-            .skip_taskbar(true)
-            .visible(false)
-            .initialization_script(ROLE_SCRIPT);
-
-    #[cfg(windows)]
-    let builder = builder.with_environment(control_room_environment(app)?);
-
-    builder.build().map_err(display_error)?;
-
-    Ok(())
+    create_projection_webview(app)
 }
 
 /// Abre a projecao no monitor escolhido, ou move a janela ja aberta para la.

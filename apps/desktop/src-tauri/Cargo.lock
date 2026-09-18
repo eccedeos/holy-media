@@ -1281,7 +1281,6 @@ dependencies = [
  "tauri-build",
  "ureq",
  "uuid",
- "webview2-com",
 ]
 
 [[package]]

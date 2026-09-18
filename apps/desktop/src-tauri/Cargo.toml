@@ -28,14 +28,6 @@ rusqlite = { version = "0.40", features = ["bundled"] }
 uuid = { version = "1", features = ["v7", "serde"] }
 ureq = { version = "2", features = ["json"] }
 
-# So' para nomear o tipo do ambiente do WebView2 (ver display::ensure_created)
-# ao compartilha-lo entre as duas janelas -- sem isto, cada janela nova cria
-# o proprio ambiente do zero, o que e' pesado em disco e travava o app
-# inteiro no Windows. Mesma versao que o `tauri` (feature `wry`, ligada por
-# padrao) ja resolve, entao nao duplica nada no binario final.
-[target.'cfg(windows)'.dependencies]
-webview2-com = "0.38"
-
 [features]
 # Ativado pelo `tauri dev`/`tauri build` quando ha custom protocol.
 custom-protocol = ["tauri/custom-protocol"]
